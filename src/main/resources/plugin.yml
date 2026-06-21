@@ -1,0 +1,44 @@
+name: CustomDamageNumbers
+
+version: 1.0.0
+
+main: in.potenfyr.cdn.CustomDamageNumbersPlugin
+
+api-version: '1.21'
+
+authors:
+  - Potenfyr
+
+depend:
+  - packetevents
+
+softdepend:
+  - LuckPerms
+  - ProtocolLib
+  - ProtocolSupport
+  - ViaVersion
+  - ViaBackwards
+  - ViaRewind
+  - Geyser-Spigot
+
+commands:
+
+  cdn:
+    description: Main command
+    aliases:
+      - damage
+      - damagedisplay
+
+permissions:
+
+  cdn.reload:
+    default: op
+
+  cdn.test:
+    default: op
+
+  cdn.style.fortnite:
+    default: true
+
+  cdn.style.mmo:
+    default: false
