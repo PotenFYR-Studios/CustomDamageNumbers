@@ -118,4 +118,5 @@ testserver/*
 # Local agent/assistant artifacts (do not commit)
 CLAUDE.md
 .rtk
+# Local agent/assistant artifacts (do not commit)
 .plan
