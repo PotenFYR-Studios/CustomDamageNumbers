@@ -10,7 +10,7 @@
   <a href="https://openjdk.org"><img src="https://img.shields.io/badge/Java-21%2B-f97316?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=1c1e26" alt="Java 21+" /></a>
   <a href="https://github.com/retrooper/packetevents"><img src="https://img.shields.io/badge/Powered%20by-PacketEvents%202.8%2B-ec4899?style=for-the-badge&labelColor=1c1e26" alt="PacketEvents 2.8+" /></a>
   <img src="https://img.shields.io/badge/Status-Alpha-eac54f?style=for-the-badge&labelColor=1c1e26" alt="Status: Alpha" />
-  <a href="https://github.com/PotenFYR-Studios/CustomDamageNumbers"><img src="https://komarev.com/ghpvc/?username=PotenFYR-Studios-CustomDamageNumbers&color=ec4899&style=for-the-badge&label=PROFILE+VIEWS&labelColor=1c1e26" alt="Profile views" /></a>
+  <a href="https://github.com/PotenFYR-Studios/CustomDamageNumbers"><img src="https://komarev.com/ghpvc/?username=PotenFYR-Studios-CustomDamageNumbers&color=ec4899&style=for-the-badge&label=VIEW&labelColor=1c1e26" alt="View" /></a>
 </p>
 
 </div>
