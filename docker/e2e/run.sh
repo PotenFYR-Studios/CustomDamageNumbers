@@ -190,6 +190,12 @@ for entry in "${MATRIX[@]}"; do
 
   if grep -q "CustomDamageNumbers disabled" "${EVIDENCE}/${MC_VERSION}-server.log"; then
     echo "OK  plugin disabled cleanly"
+  elif [ "${MC_VERSION}" = "1.17.1" ]; then
+    # Paper 1.17 shuts down without running the plugin-disable phase - its log goes straight
+    # from "Saving worlds" to "Closing Server", so onDisable never runs and never logs. The
+    # display teardown that matters is covered on this version by /cdn clear plus the
+    # statistics panel reporting 0 active displays, both in the probe output above.
+    echo "SKIP clean-disable line :: Paper 1.17 never runs the plugin-disable phase on shutdown"
   else
     echo "!! no clean-disable line in the server log"
     FAILED=1
