@@ -133,3 +133,7 @@ Testserver
 CLAUDE.md
 .rtk
 .plan
+
+# Python bytecode (release_notes.py is run by the release workflow)
+__pycache__/
+*.pyc
