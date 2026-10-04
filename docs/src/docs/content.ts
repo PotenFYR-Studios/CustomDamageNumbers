@@ -552,6 +552,7 @@ tick 29 |  last frame, then the display is destroyed`,
         {
           type: 'list',
           items: [
+            'Numbers only appear for damage a player dealt — including a player\u2019s arrows and other projectiles. A mob hitting you, fall damage or a fire tick is deliberately not a damage number, because those are not the hits this plugin is about.',
             'Run /cdn backend: if it reports no active renderer on an old server, install the Legacy jar.',
             'Run /cdn stats: animation ticks that stay at 0 while damage lands means no display was ever created — check general.enabled and general.disabled-worlds.',
             'Check that the victim kind is enabled under general.entities.',

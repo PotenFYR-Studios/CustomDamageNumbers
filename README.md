@@ -31,6 +31,7 @@ Every damage-indicator plugin eventually leaves something behind: an armour stan
 - **Anchored to the victim.** The number belongs to the entity that took the hit and is re-positioned every animation step, so a mob knocked backwards drags its number with it. `follow-smoothing` blends the anchor instead of snapping, which removes the jitter on fast targets.
 - **Config-driven animation.** Duration, rise, fall, bounce, orbit, scale, fade, spawn spread and anchor height are all live values. Edit, `/cdn reload`, watch it move — no restart.
 - **Hit merging.** Ten hits in half a second grow one number instead of stacking ten, with a configurable window, cap and attacker rule.
+- **Player-dealt hits only.** A number appears for damage a player dealt — melee, or their arrows and other projectiles. A mob hitting you, fall damage or a fire tick is deliberately not a damage number, which is what keeps a mob farm readable.
 - **Players choose.** `/cdn toggle` switches numbers off for one player and persists across restarts; `/cdn style` picks a profile when their rank allows one.
 - **Two jars, one codebase.** A modern text-display renderer for 1.20.2 – 26.x and a legacy armour-stand renderer for 1.17.x – 1.20.1, behind a single `RenderBackend` interface. Compiled against the oldest supported API so a Paper-only class cannot leak in.
 

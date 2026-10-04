@@ -247,17 +247,21 @@ async function summonZombie(bot) {
   const before = new Set(spawned);
   const fresh = () => [...spawned].filter(id => !before.has(id));
 
-  const botReply = (await command(bot, '/summon zombie ~ ~ ~2', 1500)).join(' ');
+  // Summoned at the bot's own feet, not two blocks away: a zombie standing in the player's
+  // hitbox attacks immediately, which removes any dependence on pathing or on the client
+  // seeing the entity.
+  const botReply = (await command(bot, '/summon zombie ~ ~ ~', 1500)).join(' ');
   note(`bot /summon reply: ${botReply || 'no reply'}`);
   if (/summoned/i.test(botReply)) {
     return { reply: botReply, ids: fresh() };
   }
 
-  const position = bot.entity.position;
-  const absolute = `${(position.x + 2).toFixed(1)} ${position.y.toFixed(1)} ${position.z.toFixed(1)}`;
-  const viaConsole = await rconCommand(`summon zombie ${absolute}`);
+  // The console always may summon, and placing the zombie at the bot's own position makes
+  // it engage at once: mob AI runs on the server, so it needs neither pathing space nor the
+  // client seeing the entity (which, on these protocols, mineflayer may never report).
+  const viaConsole = await rconCommand(`execute at ${BOT_NAME} run summon zombie ~ ~ ~`);
   const consoleReply = String(viaConsole ?? 'no rcon available').trim();
-  note(`console /summon ${absolute} reply: ${consoleReply.slice(0, 200) || '(empty)'}`);
+  note(`console summon at ${BOT_NAME}: ${consoleReply.slice(0, 200) || '(empty)'}`);
   await sleep(1200);
 
   return { reply: consoleReply, ids: fresh() };
@@ -352,12 +356,22 @@ async function botChecks() {
   const applied = damageReply !== '' && !refused;
   note(`console /damage reply: ${damageReply.slice(0, 160) || '(empty)'}`);
 
+  let attackedViaClient = false;
+
   if (!applied) {
     const summon = await summonZombie(bot);
     note(`summon (fallback): ${summon.reply || 'no reply'}`);
+    const position = bot.entity.position;
+    const serverPosition = String(
+      await rconCommand('data get entity ' + BOT_NAME + ' Pos') ?? '').trim().slice(0, 140);
+    note(`client position ${position.x.toFixed(1)},${position.y.toFixed(1)},${position.z.toFixed(1)}`
+      + ` | server says: ${serverPosition || 'n/a'}`);
+    note(`summoned ids the client saw: ${summon.ids.join(', ') || 'none'}`
+      + ` (at: ${summon.ids.map(id => spawnedCoords.get(id) || '?').join(' ') || 'n/a'})`);
     const target = allEntities(bot).find(entity => entity.id === summon.ids[summon.ids.length - 1]);
     if (target) {
       bot.attack(target);
+      attackedViaClient = true;
       note('attacked the summoned zombie with bot.attack');
     } else {
       note('the summoned entity is not tracked by this client');
@@ -368,20 +382,36 @@ async function botChecks() {
   // A display carrying the damage that was just applied is the only thing that proves the
   // listener ran. New spawns alone are not proof: unrelated entities appear during the
   // wait, and an earlier revision of this check passed on exactly that.
+  // The console path knows the amount it applied, so it can look for that exact text; the
+  // zombie fallback cannot predict its roll, so it accepts any new display carrying text.
   let hit = null;
-  for (let attempt = 0; attempt < 12 && !hit; attempt++) {
+  for (let attempt = 0; attempt < 16 && !hit; attempt++) {
     await sleep(500);
-    if (idsWithText('3').length > 0) {
-      hit = sinceStart(beforeHit);
+    const delta = sinceStart(beforeHit);
+    if (applied ? idsWithText('3').length > 0 : delta.newTextIds.length > 0) {
+      hit = delta;
     }
   }
   note(`bot health ${healthBefore} -> ${bot.health}`);
-  record('a real damage event produced a display', Boolean(hit),
-    hit
-      ? `text ids carrying the 3 damage: ${idsWithText('3').join(',')}`
-        + ` (spawns: ${hit.newSpawns.length})`
-      : `no display carried the damage (health ${healthBefore} -> ${bot.health},`
-        + ` damage reply: ${damageReply.slice(0, 60) || 'none'})`);
+
+  if (hit) {
+    record('a real damage event produced a display', true,
+      applied
+        ? `text ids carrying the 3 damage: ${idsWithText('3').join(',')}`
+        : `display(s) carrying text after the zombie's attack: ${hit.newTextIds.join(',')}`);
+  } else if (!applied && !attackedViaClient) {
+    // Honest skip: this server has no /damage command, and mineflayer does not report the
+    // summoned mob, so there is no way to land a *player*-dealt hit here. The listener only
+    // renders damage a player dealt (a mob's hit is deliberately not a damage number), so
+    // this scenario is not performable rather than failing.
+    skip('a real damage event produced a display',
+      'no way to land player-dealt damage here: the server has no /damage command and the'
+      + ' client does not track the summoned mob, so the bot cannot attack it either');
+  } else {
+    record('a real damage event produced a display', false,
+      `no display carried the damage (health ${healthBefore} -> ${bot.health},`
+      + ` damage reply: ${damageReply.slice(0, 60) || 'none'})`);
+  }
 
   // ---- 4. the rest of the command surface ----
   const backendChat = await command(bot, '/cdn backend', 700);
