@@ -45,19 +45,29 @@ def last_built_sha(body: str) -> str | None:
 
 
 def commits(since: str | None, limit: int = 30) -> list[str]:
-    """Commit subjects to list, newest first."""
-    if since:
-        rev_range = f"{since}..HEAD"
-    else:
-        rev_range = f"--max-count={limit} HEAD"
+    """Commit subjects to list, newest first.
+
+    When the recorded sha can no longer be resolved — a rebase or force-push moved the
+    history it pointed at — fall back to the newest commits rather than reporting that no
+    details exist, because the build itself is still worth a changelog entry.
+    """
+    entries: list[str] = []
 
     if since:
-        log = run("git", "log", "--no-merges", "--pretty=format:- %s (`%h`)", rev_range)
-    else:
-        log = run("git", "log", "--no-merges", f"--max-count={limit}",
-                  "--pretty=format:- %s (`%h`)", "HEAD")
+        log = run("git", "log", "--no-merges", "--pretty=format:- %s (`%h`)", f"{since}..HEAD")
+        entries = [line for line in log.splitlines() if line.strip()]
+        if not entries:
+            print(
+                f"[notes] {since[:7]} is not in this history (rebased or force-pushed); "
+                "listing the newest commits instead",
+                file=sys.stderr,
+            )
 
-    entries = [line for line in log.splitlines() if line.strip()]
+    if not entries:
+        log = run(
+            "git", "log", "--no-merges", f"--max-count={limit}", "--pretty=format:- %s (`%h`)", "HEAD"
+        )
+        entries = [line for line in log.splitlines() if line.strip()]
 
     return entries or ["- No commit details available for this build."]
 
