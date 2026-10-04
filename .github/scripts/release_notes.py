@@ -19,20 +19,33 @@ MARKER = "<!-- last-build-sha: {} -->"
 HEADER = "## Changelog"
 
 
-def run(*command: str) -> str:
-    """Run a command, returning stdout (or an empty string when it fails)."""
+def run(*command: str) -> str | None:
+    """Run a command, returning stdout, or None when the command itself failed."""
     try:
         return subprocess.run(
             command, capture_output=True, text=True, check=True
         ).stdout
     except (subprocess.CalledProcessError, FileNotFoundError) as failure:
         print(f"[notes] {' '.join(command)} failed: {failure}", file=sys.stderr)
-        return ""
+        return None
 
 
 def existing_body(version: str) -> str:
-    """The current release body, or an empty string when the release does not exist yet."""
+    """The current release body, or an empty string when the release does not exist yet.
+
+    Requires GH_TOKEN: without it gh fails and the previous body reads as empty, which
+    silently drops every earlier build section and rewrites the notes as a first build.
+    """
     body = run("gh", "release", "view", f"v{version}", "--json", "body", "-q", ".body")
+
+    if body is None:
+        print(
+            "[notes] could not read the existing release body (is GH_TOKEN set?); "
+            "the notes for this build will not be merged with the previous ones",
+            file=sys.stderr,
+        )
+        return ""
+
     return body.strip()
 
 
@@ -47,27 +60,33 @@ def last_built_sha(body: str) -> str | None:
 def commits(since: str | None, limit: int = 30) -> list[str]:
     """Commit subjects to list, newest first.
 
-    When the recorded sha can no longer be resolved — a rebase or force-push moved the
-    history it pointed at — fall back to the newest commits rather than reporting that no
-    details exist, because the build itself is still worth a changelog entry.
+    Three cases matter, and they are not the same:
+      - the recorded sha is unresolvable (a rebase or force-push moved the history):
+        fall back to the newest commits, because the build still deserves a changelog;
+      - the range resolved but is empty (a re-run for a commit already released):
+        say so, rather than dumping the whole history as if it were new;
+      - no recorded sha at all (first build of this version): list the newest commits.
     """
-    entries: list[str] = []
-
     if since:
         log = run("git", "log", "--no-merges", "--pretty=format:- %s (`%h`)", f"{since}..HEAD")
-        entries = [line for line in log.splitlines() if line.strip()]
-        if not entries:
+
+        if log is None:
             print(
                 f"[notes] {since[:7]} is not in this history (rebased or force-pushed); "
                 "listing the newest commits instead",
                 file=sys.stderr,
             )
+        else:
+            entries = [line for line in log.splitlines() if line.strip()]
+            if entries:
+                return entries
+            print(f"[notes] no commits since {since[:7]}; this is a re-run", file=sys.stderr)
+            return ["- No new commits: this build re-runs the commit already released."]
 
-    if not entries:
-        log = run(
-            "git", "log", "--no-merges", f"--max-count={limit}", "--pretty=format:- %s (`%h`)", "HEAD"
-        )
-        entries = [line for line in log.splitlines() if line.strip()]
+    log = run(
+        "git", "log", "--no-merges", f"--max-count={limit}", "--pretty=format:- %s (`%h`)", "HEAD"
+    )
+    entries = [line for line in (log or "").splitlines() if line.strip()]
 
     return entries or ["- No commit details available for this build."]
 

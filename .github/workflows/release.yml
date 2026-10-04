@@ -71,6 +71,10 @@ jobs:
           fi
 
       - name: Merge the changelog into the release notes
+        env:
+          # Required: without a token gh release view fails, the previous body reads as
+          # empty and every earlier build section is silently dropped.
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 .github/scripts/release_notes.py \
             --version "${{ steps.version.outputs.value }}" \
