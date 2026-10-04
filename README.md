@@ -82,7 +82,7 @@ Restart, then check the console banner and `/cdn version`. Every config value is
 | `/cdn reload [config\|messages\|all]` | Reload configuration and/or messages | `cdn.reload` | op |
 | `/cdn debug [on\|off]` | Verbose logging | `cdn.debug` | op |
 
-Aliases: `/damage`, `/damagedisplay`. Style profiles are granted per player (`cdn.style.fortnite` defaults to true, `cdn.style.mmo` to false), so LuckPerms can hand one to a rank. `cdn.view` is only enforced when `permissions.require-view-permission` is true.
+Aliases: `/damagedisplay` on both jars, plus `/damage` on the legacy jar — the modern jar deliberately leaves `/damage` to vanilla, which gained its own command in 1.20.5. Style profiles are granted per player (`cdn.style.fortnite` defaults to true, `cdn.style.mmo` to false), so LuckPerms can hand one to a rank. `cdn.view` is only enforced when `permissions.require-view-permission` is true.
 
 Every panel adapts to where it runs: players get the box-drawing frame, the console and RCON get an ASCII frame with colour codes stripped.
 

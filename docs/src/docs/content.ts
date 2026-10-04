@@ -153,7 +153,7 @@ const CURRENT: DocVersion = {
         {
           type: 'text',
           content:
-            'The aliases /damage and /damagedisplay point at the same command. Every panel adapts to where it is run: players get the box-drawing frame, the console and RCON get an ASCII frame with colour codes stripped.',
+            'The alias /damagedisplay points at the same command. The legacy jar also answers to /damage; the modern jar leaves that one to vanilla, which gained its own /damage command in 1.20.5. Every panel adapts to where it is run: players get the box-drawing frame, the console and RCON get an ASCII frame with colour codes stripped.',
         },
       ],
     },

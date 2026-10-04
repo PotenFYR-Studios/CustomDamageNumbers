@@ -44,6 +44,7 @@ const chat = [];
 const teleports = new Map();    // entity id -> [y, y, ...]
 const metadataText = new Map(); // entity id -> [text, ...]
 const spawned = new Set();
+const spawnedCoords = new Map(); // entity id -> "x,y,z" from the spawn packet
 const destroyed = new Set();
 let packetsSeen = 0;
 let notes = [];
@@ -183,6 +184,10 @@ function attachPacketCapture(bot) {
 
     if (SPAWN_PACKETS.has(meta.name)) {
       spawned.add(data.entityId);
+      if (typeof data.x === 'number') {
+        spawnedCoords.set(data.entityId,
+          `${data.x.toFixed(1)},${data.y.toFixed(1)},${data.z.toFixed(1)}`);
+      }
     } else if (DESTROY_PACKETS.has(meta.name)) {
       const ids = Array.isArray(data.entityIds) ? data.entityIds : [data.entityId];
       ids.filter(id => id !== undefined).forEach(id => destroyed.add(id));
@@ -206,6 +211,56 @@ function allEntities(bot) {
   return bot.entities instanceof Map
     ? [...bot.entities.values()]
     : Object.values(bot.entities || {});
+}
+
+/**
+ * Runs one command over RCON, returning the console reply, or null when RCON is not
+ * available in this environment.
+ */
+async function rconCommand(text) {
+  let Rcon;
+  try {
+    ({ Rcon } = require('rcon-client'));
+  } catch (missing) {
+    return null;
+  }
+  try {
+    const rcon = await Rcon.connect({ host: HOST, port: RCON_PORT, password: RCON_PASSWORD });
+    const response = await rcon.send(text);
+    rcon.end();
+    return response;
+  } catch (error) {
+    return `rcon failed: ${error.message}`;
+  }
+}
+
+/**
+ * Puts a zombie next to the bot and reports what the server said.
+ *
+ * Tries the bot's own command first and falls back to the console: the console always may
+ * summon, and absolute coordinates make the position independent of who runs it (a
+ * console's "~ ~ ~" resolves to the world spawn, not to the bot). Success is judged from
+ * the reply, not from the client's entity tracking: on newer protocols mineflayer can
+ * track the bot's neighbours yet still not see a summoned mob.
+ */
+async function summonZombie(bot) {
+  const before = new Set(spawned);
+  const fresh = () => [...spawned].filter(id => !before.has(id));
+
+  const botReply = (await command(bot, '/summon zombie ~ ~ ~2', 1500)).join(' ');
+  note(`bot /summon reply: ${botReply || 'no reply'}`);
+  if (/summoned/i.test(botReply)) {
+    return { reply: botReply, ids: fresh() };
+  }
+
+  const position = bot.entity.position;
+  const absolute = `${(position.x + 2).toFixed(1)} ${position.y.toFixed(1)} ${position.z.toFixed(1)}`;
+  const viaConsole = await rconCommand(`summon zombie ${absolute}`);
+  const consoleReply = String(viaConsole ?? 'no rcon available').trim();
+  note(`console /summon ${absolute} reply: ${consoleReply.slice(0, 200) || '(empty)'}`);
+  await sleep(1200);
+
+  return { reply: consoleReply, ids: fresh() };
 }
 
 async function botChecks() {
@@ -280,32 +335,53 @@ async function botChecks() {
   await command(bot, '/cdn clear', 800);
 
   // ---- 3. a real damage event goes through the listener ----
-  await command(bot, '/summon zombie ~ ~ ~2', 1500);
+  // Two ways to land a real hit, because neither works everywhere:
+  //   - the console's /damage with an entity source (1.20.5+): deterministic, and it needs
+  //     neither mob AI nor the client seeing the entity. The damager is the player itself,
+  //     which the plugin supports through general.self-damage;
+  //   - older servers have no /damage command, so there a zombie is summoned and the bot
+  //     attacks it, using the entity tracking that is reliable on those protocols.
+  // Both end in EntityDamageByEntityEvent, which is what the listener handles.
+  const healthBefore = bot.health;
+  const beforeHit = mark();
 
-  const nearby = allEntities(bot)
-    .filter(entity => entity !== bot.entity && entity.position &&
-      entity.position.distanceTo(bot.entity.position) < 8)
-    .map(entity => entity.name || entity.displayName || 'unknown');
-  note(`nearby entities after the summon: ${nearby.join(', ') || 'none'}`);
+  const damageReply = String(await rconCommand(
+    'minecraft:damage @e[type=player,limit=1] 3 minecraft:player_attack'
+    + ' by @e[type=player,limit=1]') ?? '').trim();
+  const refused = /unknown|incorrect|usage|failed|no entity|not found/i.test(damageReply);
+  const applied = damageReply !== '' && !refused;
+  note(`console /damage reply: ${damageReply.slice(0, 160) || '(empty)'}`);
 
-  const zombie = allEntities(bot).find(entity =>
-    entity !== bot.entity && (entity.name === 'zombie'
-      || (entity.displayName || '').toLowerCase().includes('zombie')));
-
-  if (zombie) {
-    const beforeHit = mark();
-    bot.attack(zombie);
-    await sleep(2000);
-    const afterHit = sinceStart(beforeHit);
-    record('a real damage event produced a display',
-      afterHit.newSpawns.length > 0 || afterHit.newTextIds.length > 0,
-      `spawns: ${afterHit.newSpawns.length}, text ids: ${afterHit.newTextIds.join(',') || 'none'}`);
-
+  if (!applied) {
+    const summon = await summonZombie(bot);
+    note(`summon (fallback): ${summon.reply || 'no reply'}`);
+    const target = allEntities(bot).find(entity => entity.id === summon.ids[summon.ids.length - 1]);
+    if (target) {
+      bot.attack(target);
+      note('attacked the summoned zombie with bot.attack');
+    } else {
+      note('the summoned entity is not tracked by this client');
+    }
     bot.chat('/kill @e[type=zombie]');
-    await sleep(700);
-  } else {
-    record('a real damage event produced a display', false, 'no zombie was found to attack');
   }
+
+  // A display carrying the damage that was just applied is the only thing that proves the
+  // listener ran. New spawns alone are not proof: unrelated entities appear during the
+  // wait, and an earlier revision of this check passed on exactly that.
+  let hit = null;
+  for (let attempt = 0; attempt < 12 && !hit; attempt++) {
+    await sleep(500);
+    if (idsWithText('3').length > 0) {
+      hit = sinceStart(beforeHit);
+    }
+  }
+  note(`bot health ${healthBefore} -> ${bot.health}`);
+  record('a real damage event produced a display', Boolean(hit),
+    hit
+      ? `text ids carrying the 3 damage: ${idsWithText('3').join(',')}`
+        + ` (spawns: ${hit.newSpawns.length})`
+      : `no display carried the damage (health ${healthBefore} -> ${bot.health},`
+        + ` damage reply: ${damageReply.slice(0, 60) || 'none'})`);
 
   // ---- 4. the rest of the command surface ----
   const backendChat = await command(bot, '/cdn backend', 700);

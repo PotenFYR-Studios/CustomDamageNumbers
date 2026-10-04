@@ -25,8 +25,9 @@ commands:
   cdn:
     description: CustomDamageNumbers command
     usage: /cdn help
+    # No "damage" alias here: vanilla added /damage in 1.20.5 and this jar serves 1.20.2+,
+    # so the alias would shadow the vanilla command instead of adding anything.
     aliases:
-      - damage
       - damagedisplay
 
 permissions:
