@@ -112,6 +112,9 @@ buildNumber.properties
 run/
 testserver/
 Testserver
+!testserver/
+testserver/*
+!testserver/run-testserver.ps1
 # Local agent/assistant artifacts (do not commit)
 CLAUDE.md
 .rtk

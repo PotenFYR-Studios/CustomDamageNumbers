@@ -7,6 +7,7 @@ public enum DamageType {
     MAGIC,
     POISON,
     EXPLOSION,
-    CRITICAL
+    CRITICAL,
+    FALL
 
 }

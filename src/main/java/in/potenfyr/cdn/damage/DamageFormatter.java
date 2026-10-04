@@ -1,9 +1,18 @@
 package in.potenfyr.cdn.damage;
 
+import in.potenfyr.cdn.CustomDamageNumbersPlugin;
+import in.potenfyr.cdn.util.ColorUtil;
+import in.potenfyr.cdn.util.ConfigManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
+import java.util.Locale;
+
+/**
+ * Renders the damage value using the per-type style configured under
+ * {@code styles.<type>} (format, color, bold, italic). Critical hits use the
+ * {@code styles.critical} section, so server owners can fully restyle them.
+ */
 public class DamageFormatter {
 
     public static Component format(
@@ -12,37 +21,29 @@ public class DamageFormatter {
             boolean critical
     ) {
 
-        String value =
-                String.format("%.1f", damage);
+        ConfigManager config =
+                CustomDamageNumbersPlugin.getInstance().getConfigManager();
 
-        if (critical) {
+        // Locale.ROOT keeps the decimal point stable on non-English servers.
+        String value = String.format(Locale.ROOT, "%.1f", damage);
 
-            return Component.text("✦ " + value)
-                    .color(NamedTextColor.RED)
-                    .decorate(TextDecoration.BOLD);
-        }
+        String styleKey = critical
+                ? "critical"
+                : type.name().toLowerCase(Locale.ROOT);
 
-        return switch (type) {
+        String text = config.getFormat(styleKey)
+                .replace("{damage}", value)
+                .replace("{symbol}", config.getCriticalSymbol());
 
-            case FIRE -> Component.text(value)
-                    .color(NamedTextColor.GOLD)
-                    .decorate(TextDecoration.BOLD);
-
-            case MAGIC -> Component.text(value)
-                    .color(NamedTextColor.LIGHT_PURPLE)
-                    .decorate(TextDecoration.BOLD);
-
-            case POISON -> Component.text(value)
-                    .color(NamedTextColor.GREEN)
-                    .decorate(TextDecoration.BOLD);
-
-            case EXPLOSION -> Component.text(value)
-                    .color(NamedTextColor.YELLOW)
-                    .decorate(TextDecoration.BOLD);
-
-            default -> Component.text(value)
-                    .color(NamedTextColor.WHITE)
-                    .decorate(TextDecoration.BOLD);
-        };
+        return Component.text(text)
+                .color(ColorUtil.fromHex(config.getColor(styleKey)))
+                .decoration(TextDecoration.BOLD,
+                        config.isBold(styleKey)
+                                ? TextDecoration.State.TRUE
+                                : TextDecoration.State.FALSE)
+                .decoration(TextDecoration.ITALIC,
+                        config.isItalic(styleKey)
+                                ? TextDecoration.State.TRUE
+                                : TextDecoration.State.FALSE);
     }
 }

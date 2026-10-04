@@ -7,9 +7,9 @@
 # optimized for modern Paper/Spigot servers.
 #
 # Recommended:
-# - Paper 1.21+
-# - Java 21
-# - PacketEvents 2.8+
+# - Paper 26.3
+# - Java 25
+# - PacketEvents 2.14+
 #
 # ==========================================================
 

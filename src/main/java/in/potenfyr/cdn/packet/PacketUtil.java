@@ -12,9 +12,10 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 
 import in.potenfyr.cdn.CustomDamageNumbersPlugin;
 import in.potenfyr.cdn.damage.DamageFormatter;
+import in.potenfyr.cdn.damage.DamageRenderer;
 import in.potenfyr.cdn.damage.FloatingDamage;
 
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -29,10 +30,12 @@ public class PacketUtil {
 
     public static void spawn(FloatingDamage damage) {
 
+        int entityId = damage.getEntityId();
+
         WrapperPlayServerSpawnEntity spawnPacket =
                 new WrapperPlayServerSpawnEntity(
-                        damage.getEntityId(),
-                        Optional.of(UUID.randomUUID()),
+                        entityId,
+                        Optional.of(damage.getUuid()),
                         EntityTypes.TEXT_DISPLAY,
                         new Vector3d(
                                 damage.getLocation().getX(),
@@ -44,50 +47,115 @@ public class PacketUtil {
                         Optional.empty()
                 );
 
-        String componentJson =
-                GsonComponentSerializer.gson()
-                        .serialize(
-                                DamageFormatter.format(
-                                        damage.getDamage(),
-                                        damage.getType(),
-                                        damage.isCritical()
-                                )
-                        );
+        Component text = DamageFormatter.format(
+                damage.getDamage(),
+                damage.getType(),
+                damage.isCritical()
+        );
 
-        List<EntityData<?>> metadata = new ArrayList<>();
+        List<EntityData<?>> metadata =
+                buildMetadata(text);
 
-
-        metadata.add(new EntityData<>(10, EntityDataTypes.INT, 3));
-
-        // Text component
-        // Index 15 - Billboard = CENTER (always faces player)
-        metadata.add(new EntityData<>(15, EntityDataTypes.BYTE, (byte) 3));
-
-        // Index 23 - Text component
-        metadata.add(new EntityData<>(23, EntityDataTypes.COMPONENT, componentJson));
-
-        // Index 24 - Line width
-        metadata.add(new EntityData<>(24, EntityDataTypes.INT, 200));
-
-        // Index 25 - Background color (fully transparent = 0)
-        metadata.add(new EntityData<>(25, EntityDataTypes.INT, 0));
-
-        // Index 26 - Text opacity (fully opaque = -1)
-        metadata.add(new EntityData<>(26, EntityDataTypes.BYTE, (byte) -1));
-
-        // Index 27 - Style flags (0x01 = shadow)
-        metadata.add(new EntityData<>(27, EntityDataTypes.BYTE, (byte) 0x01));
         WrapperPlayServerEntityMetadata metadataPacket =
                 new WrapperPlayServerEntityMetadata(
-                        damage.getEntityId(),
+                        entityId,
                         metadata
                 );
 
+        var config =
+                CustomDamageNumbersPlugin
+                        .getInstance()
+                        .getConfigManager();
+
+        boolean nearbyOnly = config.isNearbyViewersOnly();
+        int viewDistance = config.getViewDistance();
+        double maxDistanceSq = (double) viewDistance * viewDistance;
+        int maxPerPlayer = config.getMaxPerPlayer();
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!canSee(player, damage)) continue;
+
+            if (player.getWorld() != damage.getLocation().getWorld()) {
+                continue;
+            }
+
+            if (nearbyOnly
+                    && player.getLocation().distanceSquared(damage.getLocation()) > maxDistanceSq) {
+                continue;
+            }
+
+            // Per-player cap so one busy combat area cannot flood a single viewer.
+            if (DamageRenderer.countActiveFor(player.getUniqueId()) >= maxPerPlayer) {
+                continue;
+            }
+
+            // Optional per-player view permission (permissions.require-view-permission).
+            if (config.isRequireViewPermission()
+                    && !player.hasPermission(config.getViewPermission())) {
+                continue;
+            }
+
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, spawnPacket);
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, metadataPacket);
+
+            damage.addViewer(player.getUniqueId());
         }
+    }
+
+    /*
+     * TextDisplay metadata indices, valid for the 26.3 protocol (unchanged
+     * since 1.20.2; Display base spans 8-22, Text Display spans 23-27).
+     * PacketEvents 2.x intentionally exposes no typed constants for these,
+     * so the indices are kept here, documented, in one place.
+     */
+    private static final int INDEX_POSITION_INTERPOLATION = 10;
+    private static final int INDEX_BILLBOARD = 15;
+    private static final byte BILLBOARD_CENTER = 3;
+
+    private static final int INDEX_TEXT = 23;
+    private static final int INDEX_LINE_WIDTH = 24;
+    private static final int INDEX_BACKGROUND_COLOR = 25;
+    private static final int INDEX_TEXT_OPACITY = 26;
+    private static final int INDEX_STYLE_FLAGS = 27;
+
+    private static final byte STYLE_FLAG_SHADOW = 0x01;
+
+    private static final int LINE_WIDTH = 200;
+    private static final byte FULLY_OPAQUE = (byte) -1;
+
+    /**
+     * Builds TextDisplay metadata. Entries are encoded per viewer protocol by
+     * PacketEvents, keeping 26.3 clients and protocol-translated viewers
+     * (ViaVersion/Geyser) correct.
+     */
+    private static List<EntityData<?>> buildMetadata(Component text) {
+
+        List<EntityData<?>> metadata = new ArrayList<>();
+
+        // Smooth the per-tick teleport movement client-side over 3 ticks.
+        metadata.add(new EntityData<>(
+                INDEX_POSITION_INTERPOLATION, EntityDataTypes.INT, 3));
+
+        // Billboard CENTER: the number always faces the viewer.
+        metadata.add(new EntityData<>(
+                INDEX_BILLBOARD, EntityDataTypes.BYTE, BILLBOARD_CENTER));
+
+        metadata.add(new EntityData<>(
+                INDEX_TEXT, EntityDataTypes.ADV_COMPONENT, text));
+
+        metadata.add(new EntityData<>(
+                INDEX_LINE_WIDTH, EntityDataTypes.INT, LINE_WIDTH));
+
+        // Fully transparent background.
+        metadata.add(new EntityData<>(
+                INDEX_BACKGROUND_COLOR, EntityDataTypes.INT, 0));
+
+        metadata.add(new EntityData<>(
+                INDEX_TEXT_OPACITY, EntityDataTypes.BYTE, FULLY_OPAQUE));
+
+        metadata.add(new EntityData<>(
+                INDEX_STYLE_FLAGS, EntityDataTypes.BYTE, STYLE_FLAG_SHADOW));
+
+        return metadata;
     }
 
     public static void teleport(FloatingDamage damage) {
@@ -104,10 +172,33 @@ public class PacketUtil {
                         false
                 );
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!canSee(player, damage)) continue;
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+        for (UUID viewerId : List.copyOf(damage.getViewers())) {
+
+            Player viewer = Bukkit.getPlayer(viewerId);
+
+            if (viewer == null || !viewer.isOnline()) {
+                continue;
+            }
+
+            PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
         }
+    }
+
+    /**
+     * Detaches a single viewer from a display (distance culling / logout).
+     */
+    public static void destroyFor(FloatingDamage damage, UUID viewerId) {
+
+        Player viewer = Bukkit.getPlayer(viewerId);
+
+        if (viewer != null && viewer.isOnline()) {
+
+            PacketEvents.getAPI().getPlayerManager().sendPacket(
+                    viewer,
+                    new WrapperPlayServerDestroyEntities(damage.getEntityId()));
+        }
+
+        damage.getViewers().remove(viewerId);
     }
 
     public static void destroy(FloatingDamage damage) {
@@ -115,24 +206,18 @@ public class PacketUtil {
         WrapperPlayServerDestroyEntities packet =
                 new WrapperPlayServerDestroyEntities(damage.getEntityId());
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
-        }
-    }
+        // Only players that actually received the spawn get the despawn packet.
+        for (UUID viewerId : List.copyOf(damage.getViewers())) {
 
-    private static boolean canSee(Player player, FloatingDamage damage) {
+            Player viewer = Bukkit.getPlayer(viewerId);
 
-        int distance =
-                CustomDamageNumbersPlugin
-                        .getInstance()
-                        .getConfigManager()
-                        .getViewDistance();
+            if (viewer == null || !viewer.isOnline()) {
+                continue;
+            }
 
-        if (!player.getWorld().equals(damage.getLocation().getWorld())) {
-            return false;
+            PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
         }
 
-        return player.getLocation().distanceSquared(damage.getLocation())
-                <= distance * distance;
+        damage.clearViewers();
     }
 }

@@ -51,6 +51,82 @@ public class ConfigManager {
         );
     }
 
+    public boolean isMobs() {
+
+        return getConfig().getBoolean("general.mobs", true);
+    }
+
+    public boolean isPlayers() {
+
+        return getConfig().getBoolean("general.players", true);
+    }
+
+    public boolean isAnimals() {
+
+        return getConfig().getBoolean("general.animals", true);
+    }
+
+    public boolean isSelfDamage() {
+
+        return getConfig().getBoolean("general.self-damage", true);
+    }
+
+    public boolean isRemoveOnDeath() {
+
+        return getConfig().getBoolean(
+                "advanced.remove-on-death",
+                true
+        );
+    }
+
+    public boolean isCleanupOrphans() {
+
+        return getConfig().getBoolean(
+                "general.cleanup-orphans",
+                true
+        );
+    }
+
+    public boolean isIgnoreInvisibleEntities() {
+
+        return getConfig().getBoolean(
+                "general.ignore-invisible-entities",
+                true
+        );
+    }
+
+    public boolean isIgnoreArmorStands() {
+
+        return getConfig().getBoolean(
+                "general.ignore-armor-stands",
+                true
+        );
+    }
+
+    public boolean isIgnoreNpcs() {
+
+        return getConfig().getBoolean(
+                "general.ignore-npcs",
+                true
+        );
+    }
+
+    public boolean isRequireViewPermission() {
+
+        return getConfig().getBoolean(
+                "permissions.require-view-permission",
+                false
+        );
+    }
+
+    public String getViewPermission() {
+
+        return getConfig().getString(
+                "permissions.view-permission",
+                "cdn.view"
+        );
+    }
+
     public boolean isNearbyViewersOnly() {
 
         return getConfig().getBoolean(
@@ -239,7 +315,23 @@ public class ConfigManager {
 
         return getConfig().getInt(
                 "advanced.entity-id-start",
-                500000
+        500000
+        );
+    }
+
+    public boolean isDistanceCulling() {
+
+        return getConfig().getBoolean(
+                "performance.distance-culling",
+                true
+        );
+    }
+
+    public boolean isIgnoreZeroDamage() {
+
+        return getConfig().getBoolean(
+                "advanced.ignore-zero-damage",
+        true
         );
     }
 }

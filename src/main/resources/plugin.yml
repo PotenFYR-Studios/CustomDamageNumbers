@@ -1,10 +1,12 @@
 name: CustomDamageNumbers
 
-version: 1.0.0
+version: '${project.version}'
 
 main: in.potenfyr.cdn.CustomDamageNumbersPlugin
 
-api-version: '1.21'
+description: Packet-based floating damage numbers rendered as client-side text displays.
+
+api-version: '26.3'
 
 authors:
   - Potenfyr
@@ -24,7 +26,7 @@ softdepend:
 commands:
 
   cdn:
-    description: Main command
+    description: CustomDamageNumbers admin command
     aliases:
       - damage
       - damagedisplay
@@ -32,13 +34,21 @@ commands:
 permissions:
 
   cdn.reload:
+    description: Allows reloading the CDN configuration
     default: op
 
   cdn.test:
+    description: Allows spawning a test damage display
     default: op
 
+  cdn.view:
+    description: Allows seeing damage numbers (only enforced when require-view-permission is true)
+    default: true
+
   cdn.style.fortnite:
+    description: Selects the Fortnite style behavior
     default: true
 
   cdn.style.mmo:
+    description: Selects the MMO style behavior
     default: false

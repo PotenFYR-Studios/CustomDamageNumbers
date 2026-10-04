@@ -6,9 +6,9 @@
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&pause=1200&color=8B5CF6&center=true&vCenter=true&width=800&lines=Packet-level+floating+damage+numbers+%F0%9F%92%A5;No+armor+stands+%C2%B7+No+entities+%C2%B7+No+client+mods;Six+damage+types+%C2%B7+Crits+%C2%B7+Hit+merging+%C2%B7+Particles;By+PotenFYR+Studios)](https://github.com/PotenFYR-Studios/CustomDamageNumbers)
 
 <p align="center">
-  <a href="https://papermc.io"><img src="https://img.shields.io/badge/Platform-Paper%201.21%2B-8b5cf6?style=for-the-badge&logo=minecraft&logoColor=white&labelColor=1c1e26" alt="Paper 1.21+" /></a>
-  <a href="https://openjdk.org"><img src="https://img.shields.io/badge/Java-21%2B-f97316?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=1c1e26" alt="Java 21+" /></a>
-  <a href="https://github.com/retrooper/packetevents"><img src="https://img.shields.io/badge/Powered%20by-PacketEvents%202.8%2B-ec4899?style=for-the-badge&labelColor=1c1e26" alt="PacketEvents 2.8+" /></a>
+  <a href="https://papermc.io"><img src="https://img.shields.io/badge/Platform-Paper%2026.3-8b5cf6?style=for-the-badge&logo=minecraft&logoColor=white&labelColor=1c1e26" alt="Paper 26.3" /></a>
+  <a href="https://openjdk.org"><img src="https://img.shields.io/badge/Java-25%2B-f97316?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=1c1e26" alt="Java 25+" /></a>
+  <a href="https://github.com/retrooper/packetevents"><img src="https://img.shields.io/badge/Powered%20by-PacketEvents%202.14%2B-ec4899?style=for-the-badge&labelColor=1c1e26" alt="PacketEvents 2.14+" /></a>
   <img src="https://img.shields.io/badge/Status-Alpha-eac54f?style=for-the-badge&labelColor=1c1e26" alt="Status: Alpha" />
   <a href="https://github.com/PotenFYR-Studios/CustomDamageNumbers"><img src="https://komarev.com/ghpvc/?username=PotenFYR-Studios-CustomDamageNumbers&color=ec4899&style=for-the-badge&label=VIEW&labelColor=1c1e26" alt="View" /></a>
 </p>
@@ -38,9 +38,10 @@
 
 | Component | Version |
 |-----------|---------|
-| Server | Paper or Spigot 1.21+ |
-| Java | 21+ |
-| Dependency | PacketEvents 2.8+ (required, hard dependency) |
+| Minecraft | 26.3 |
+| Server | Paper 26.3 |
+| Java | 25+ |
+| Dependency | PacketEvents 2.14+ (required, hard dependency) |
 | Optional | LuckPerms, ProtocolLib, ViaVersion, ViaBackwards, ViaRewind, ProtocolSupport, Geyser-Spigot |
 
 ## 🔨 Building
@@ -76,6 +77,37 @@ The plugin jar is output to `target/`.
 | `/cdn` | none | Help overview (aliases: `/damage`, `/damagedisplay`) |
 | `/cdn reload` | `cdn.reload` (OP) | Reload `config.yml` and `messages.yml` |
 | `/cdn test` | `cdn.test` (OP) | Spawn a test critical damage display |
+
+## 🧪 Test Server
+
+Run `testserver\run-testserver.ps1` from PowerShell to build the plugin, install it in the local Paper server, run the bundled runtime probe, and stop the server after validation:
+
+```powershell
+.\testserver\run-testserver.ps1 -JavaPath "C:\Path\To\Java25\bin\java.exe"
+```
+
+Use `-SkipBuild` to test the existing jar in `target`, or provide `-JavaPath` when Java 25 is not the default `java` on `PATH`. The script requires Maven on `PATH` when building.
+
+## 🔄 Migration & Changelog
+
+### 0.2.0 — Paper 26.3 upgrade
+
+- **Target**: Minecraft/Paper **26.3** (`api-version: '26.3'`), Java **25**.
+- **Paper API**: `26.3-R0.1-SNAPSHOT` (was `1.21.6-R0.1-SNAPSHOT`).
+- **PacketEvents**: `2.14.0` (first release with Minecraft 26.3 support; was `2.12.1`).
+- **LuckPerms API**: `5.5` (was `5.4`).
+- **Damage detection**: critical hits now use the modern `EntityDamageByEntityEvent#isCritical()` instead of the fall-distance heuristic; damage-type classification consults the damage-source type key first and falls back to `DamageCause`.
+- **Rendering**: text-display metadata indices were re-validated against the current display-entity protocol layout (Display base 8–22, Text Display 23–27, unchanged since 1.20.2) and are now documented in one place; the deprecated `EntityDataTypes.COMPONENT` (JSON string) was replaced with `EntityDataTypes.ADV_COMPONENT` (native Adventure); each display carries a stable fake-entity UUID instead of a random UUID per viewer.
+- **Viewer tracking**: teleport/destroy packets are only sent to players that actually received the spawn packet; distance culling detaches out-of-range viewers; orphan cleanup and plugin-disable now despawn live displays.
+- **Behavior fixes**: killing blows flash briefly instead of playing the full animation (`advanced.remove-on-death`); the previously ignored `animation.horizontal-randomness` setting now controls spawn spread; `styles.<type>` format/color/bold/italic settings are now honored for every damage type; zero-damage fake hits are filtered (`advanced.ignore-zero-damage`).
+- **Commands**: `/cdn` messages come from `messages.yml` (Adventure components, legacy `&` codes still work); added tab completion and a `cdn.test` permission check.
+- **Config compatibility**: all existing `config.yml` and `messages.yml` keys keep working; missing keys fall back to built-in defaults and new keys are optional. No user settings are overwritten on startup.
+
+### Upgrading from 0.1.x
+
+1. Update the server to Paper 26.3 and Java 25+.
+2. Update PacketEvents to 2.14.0 or newer.
+3. Replace the plugin jar. Existing `config.yml` / `messages.yml` files can be kept as-is.
 
 ## 🤝 Contributing
 

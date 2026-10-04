@@ -8,12 +8,17 @@
 
     <groupId>in.potenfyr</groupId>
     <artifactId>CustomDamageNumbers</artifactId>
-    <version>0.1.0-ALPHA</version>
+    <version>0.2.0</version>
 
     <properties>
 
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
+
+        <!-- Paper 26.x coordinates use the 'version.build.N' scheme.
+             26.3.build.140-beta is the current Paper 26.3 build (BETA channel). -->
+        <paper.version>26.3.build.140-beta</paper.version>
+        <packetevents.version>2.14.0</packetevents.version>
+        <luckperms.version>5.5</luckperms.version>
 
         <project.build.sourceEncoding>
             UTF-8
@@ -47,7 +52,7 @@
 
             <artifactId>paper-api</artifactId>
 
-            <version>1.21.6-R0.1-SNAPSHOT</version>
+            <version>${paper.version}</version>
 
             <scope>provided</scope>
 
@@ -59,7 +64,7 @@
 
             <artifactId>packetevents-spigot</artifactId>
 
-            <version>2.12.1</version>
+            <version>${packetevents.version}</version>
 
             <scope>provided</scope>
 
@@ -71,12 +76,33 @@
 
             <artifactId>api</artifactId>
 
-            <version>5.4</version>
+            <version>${luckperms.version}</version>
 
             <scope>provided</scope>
 
         </dependency>
 
     </dependencies>
+
+    <build>
+        <!-- Filter resources so \${project.version} in plugin.yml is substituted. -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+                <configuration>
+                    <release>25</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
