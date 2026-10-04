@@ -1,0 +1,82 @@
+name: CustomDamageNumbers
+version: '${version}'
+main: in.potenfyr.cdn.legacy.LegacyPlugin
+description: 'Packet-based floating damage numbers rendered as client-side nametags (legacy: 1.17.x - 1.20.1 on Java 17+).'
+# api-version stays at 1.16 so this jar can also be used on 1.16.5 by rebuilding
+# with javaRelease=16; the shipped build is Java 17 bytecode (see README).
+api-version: '1.16'
+authors: [Potenfyr]
+website: https://github.com/PotenFYR-Studios/CustomDamageNumbers
+folia-supported: true
+
+depend:
+  - packetevents
+
+softdepend:
+  - LuckPerms
+  - PlaceholderAPI
+  - ProtocolLib
+  - ProtocolSupport
+  - ViaVersion
+  - ViaBackwards
+  - ViaRewind
+  - Geyser-Spigot
+
+commands:
+
+  cdn:
+    description: CustomDamageNumbers command
+    usage: /cdn help
+    aliases:
+      - damage
+      - damagedisplay
+
+permissions:
+
+  cdn.reload:
+    description: Reload the configuration and messages
+    default: op
+
+  cdn.test:
+    description: Spawn a test damage display
+    default: op
+
+  cdn.toggle:
+    description: Toggle your own damage indicators
+    default: true
+
+  cdn.toggle.others:
+    description: Toggle another player's damage indicators
+    default: op
+
+  cdn.debug:
+    description: Toggle debug logging
+    default: op
+
+  cdn.stats:
+    description: Show runtime statistics
+    default: op
+
+  cdn.clear:
+    description: Clear live damage displays
+    default: op
+
+  cdn.style:
+    description: Select your own damage number style
+    default: true
+
+  cdn.style.others:
+    description: Change another player's damage number style
+    default: op
+
+  cdn.view:
+    description: 'See damage numbers (only enforced when permissions.require-view-permission is true)'
+    default: true
+
+  cdn.style.fortnite:
+    description: Grants the Fortnite style profile
+    default: true
+
+  cdn.style.mmo:
+    description: Grants the MMO style profile
+    default: false

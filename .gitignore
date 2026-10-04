@@ -25,6 +25,9 @@ out/
 *.tar.gz
 *.rar
 
+# The Gradle wrapper jar is part of the build and must be committed.
+!gradle/wrapper/gradle-wrapper.jar
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
@@ -96,6 +99,10 @@ $RECYCLE.BIN/
 
 target/
 
+# Gradle build output and caches
+build/
+.gradle/
+
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -108,15 +115,21 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 .flattened-pom.xml
 
+# End-to-end harness output (server logs and probe reports)
+docker/e2e/evidence/
+
+# Documentation site (Vite + React): dependencies, build output and incremental state
+docs/node_modules/
+docs/dist/
+docs/tsconfig.tsbuildinfo
+docs/.vite/
+
 # Common working directory
 run/
 testserver/
 Testserver
-!testserver/
-testserver/*
-!testserver/run-testserver.ps1
+
 # Local agent/assistant artifacts (do not commit)
 CLAUDE.md
 .rtk
-# Local agent/assistant artifacts (do not commit)
 .plan

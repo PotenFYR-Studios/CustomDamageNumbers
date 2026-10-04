@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cdn.docs.potenfyr.in/sitemap.xml

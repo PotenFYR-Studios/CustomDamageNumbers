@@ -87,3 +87,26 @@ from a clean Maven repo.
 Deliverable: self-review pass against the spec checklist, any fixes, then commit
 and push to `origin/master`.
 Verify: `git status` clean, `git log` shows the work, pushed refs match.
+
+---
+
+## Status
+
+All tasks completed. Evidence recorded during execution:
+
+| Task | Result |
+|---|---|
+| T0–T1 | Gradle (not Maven, per the maintainer mid-flight) parent + 3 modules; both jars shade and relocate Adventure/Gson/bStats; `plugin.yml` version filtered from `gradle.properties`. |
+| T2 | `MinecraftVersion` / `Ecosystem` / scheduler adapters, unit-tested; detection fixed to use `Bukkit.getName()` after the container run showed "Unknown" on 1.21.8 and 26.3. |
+| T3–T4 | Config parsed and clamped, style profiles, MiniMessage + legacy text pipeline, pure animation curve. Contents changed twice: the JSON serializer moved to the gson artifact, and format colours now beat `styles.*.color`. |
+| T5–T7 | Damage pipeline, merging, preferences, packet layer, both renderers. Metadata payloads are now PE-free `MetadataValue` records because PacketEvents' metadata types cannot be built without a live API. |
+| T8–T9 | Commands, integrations, metrics, lifecycle; `onDisable` now logs first and isolates each teardown step. |
+| T10 | 103 unit tests green. Container harness: legacy renderer verified packet-level on Paper 1.17.1 and 1.20.1, modern renderer on Paper 1.21.8 (spawn → index-23 text → teleport rise/fall → destroy, toggle off/on, real mob hit), and Paper 26.3 for lifecycle and commands. |
+| T11 | README rewritten against the code; spec gained an implementation-notes section covering every deviation. |
+| T12 | Review, fixes, commit and push. |
+
+Deviations from the plan, all recorded in the spec's implementation notes: Gradle
+instead of Maven; the practical legacy floor is 1.17.1 (Paper 1.16.5 refuses Java 17);
+the JSON serializer artifact; PE-free metadata payloads; colour precedence; dual-signal
+server detection; name-based damage-cause mapping.
+

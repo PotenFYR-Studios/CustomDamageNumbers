@@ -1,0 +1,363 @@
+#
+# ==========================================================
+#                 CustomDamageNumbers Config
+# ==========================================================
+#
+# Packet-based floating damage numbers. Nothing is spawned into the world:
+# every number is a client-side entity sent straight over the protocol.
+#
+# Which jar to install:
+#   CustomDamageNumbers-<version>.jar          Minecraft 1.20.2 - 26.x
+#   CustomDamageNumbers-Legacy-<version>.jar   Minecraft 1.16.x - 1.20.1
+#
+# Every value below is read on reload; /cdn reload applies changes live.
+# ==========================================================
+
+general:
+
+  # Master switch. When false nothing is rendered and /cdn test reports why.
+  enabled: true
+
+  # Verbose logging, also toggled in game with /cdn debug.
+  debug: false
+
+  # Print the ASCII banner to the console on startup.
+  banner: true
+
+  # Maximum distance a player can be from a number to receive it.
+  # Lower is cheaper on busy servers.
+  view-distance: 32
+
+  # Worlds where damage numbers are never shown.
+  disabled-worlds:
+    - example_world
+
+  # Skip victims that would only produce noise.
+  ignore-invisible-entities: true
+  ignore-armor-stands: true
+  ignore-npcs: true
+
+  # Which victim kinds produce numbers.
+  entities:
+    mobs: true
+    players: true
+    animals: true
+
+  # Show numbers when a player damages themselves.
+  self-damage: true
+
+  # Only send to players within view-distance (rather than all players in the world).
+  nearby-viewers-only: true
+
+  # Global cap on simultaneous displays; protects against mob-farm floods.
+  max-active-displays: 2000
+
+  # Drop displays whose viewers all went offline or out of range.
+  cleanup-orphans: true
+
+  # What a player sees before they run /cdn toggle: true = numbers on.
+  default-view-enabled: true
+
+# ==========================================================
+# Animation
+# ==========================================================
+#
+# The number is anchored above the damaged entity and follows it, so these
+# values describe the movement around that anchor.
+# ==========================================================
+
+animation:
+
+  # Total lifetime of a number, in ticks (20 = 1 second).
+  duration-ticks: 30
+
+  # Ticks spent rising before the number starts to sink. The peak height is
+  # vertical-speed * rise-ticks.
+  rise-ticks: 10
+
+  # Blocks per tick during the rise. 0.08 with rise-ticks 10 peaks at 0.8 blocks.
+  vertical-speed: 0.08
+
+  # Peak horizontal drift, in blocks.
+  horizontal-randomness: 0.20
+
+  # Scale the number over its lifetime.
+  scale-animation: true
+  start-scale: 1.3
+  end-scale: 0.8
+
+  # Fade the number out near the end of its life.
+  # Requires a TextDisplay (1.20.2+); ignored by the legacy jar.
+  fade-out: true
+
+  # Progress point (0-1) where fading starts.
+  fade-start: 0.6
+
+  # Layer a damped bounce on top of the rise.
+  bounce: true
+  bounce-strength: 0.35
+
+  # Slowly orbit the anchor instead of drifting straight out.
+  rotation: false
+  rotation-speed: 0.10
+
+  # Give each number a small random spawn offset so stacked hits are readable.
+  random-offset: true
+  spawn-spread: 0.20
+
+  # Keep the number attached to the damaged entity as it moves.
+  follow-entity: true
+
+  # How far above the entity's feet the number is anchored.
+  anchor-height: 1.8
+
+  # Anchor smoothing: 0 snaps to the entity each tick, higher values lag
+  # behind for a softer follow.
+  follow-smoothing: 0.35
+
+# ==========================================================
+# Hit merging
+# ==========================================================
+#
+# Rapid hits on the same victim grow one number instead of stacking many.
+# ==========================================================
+
+merge-system:
+
+  enabled: true
+
+  # A follow-up hit inside this window merges into the live number.
+  merge-window-ms: 150
+
+  # Cap for the accumulated value.
+  max-merged-damage: 9999
+
+  # Only merge hits from the same attacker.
+  same-attacker-only: true
+
+# ==========================================================
+# Critical hits
+# ==========================================================
+
+critical-hits:
+
+  enabled: true
+
+  # Extra display scale, folded into the animation for the whole lifetime.
+  scale-multiplier: 1.5
+
+  # Play a sound when a critical hit lands (sent as a packet).
+  sound: true
+  sound-type: ENTITY_PLAYER_ATTACK_CRIT
+  volume: 1.0
+  pitch: 1.2
+
+# ==========================================================
+# Damage styles
+# ==========================================================
+#
+# {damage} and {value} are replaced with the number.
+# Colour accepts hex (#FF3333) or a MiniMessage colour name.
+# Legacy &a codes still work. MiniMessage tags work too.
+#
+# A colour written inside the format wins; the color setting below is the default
+# used when the format does not set one itself.
+#
+# shadow only applies to the TextDisplay renderer (1.20.2+).
+# ==========================================================
+
+styles:
+
+  normal:
+    enabled: true
+    format: "{damage}"
+    color: "#FFFFFF"
+    bold: true
+    italic: false
+    shadow: true
+
+  critical:
+    enabled: true
+    format: "✧ {damage}"
+    color: "#FF3333"
+    bold: true
+    italic: false
+    shadow: true
+
+  fire:
+    enabled: true
+    format: "🔥 {damage}"
+    color: "#FF9900"
+    bold: true
+    italic: false
+    shadow: true
+
+  poison:
+    enabled: true
+    format: "☠ {damage}"
+    color: "#00FF66"
+    bold: true
+    italic: false
+    shadow: true
+
+  magic:
+    enabled: true
+    format: "✦ {damage}"
+    color: "#CC66FF"
+    bold: true
+    italic: false
+    shadow: true
+
+  explosion:
+    enabled: true
+    format: "💥 {damage}"
+    color: "#FFFF00"
+    bold: true
+    italic: false
+    shadow: true
+
+  healing:
+    enabled: true
+    format: "+{damage}"
+    color: "#00FF99"
+    bold: true
+    italic: false
+    shadow: true
+
+  fall:
+    enabled: true
+    format: "{damage}"
+    color: "#AAAAAA"
+    bold: true
+    italic: false
+    shadow: true
+
+# ==========================================================
+# Style profiles
+# ==========================================================
+#
+# A profile overrides individual styles.<type> sections. A player gets a profile
+# from /cdn style, or from the cdn.style.* permissions (which LuckPerms makes
+# group-aware). A disabled type falls back to styles.normal.
+# ==========================================================
+
+style-profiles:
+
+  fortnite:
+
+    critical:
+      format: "{damage}"
+      color: "#FFFF00"
+
+  mmo:
+
+    normal:
+      format: "{damage} DMG"
+
+    critical:
+      format: "{damage} CRIT"
+      color: "#FF5555"
+
+# ==========================================================
+# Particles
+# ==========================================================
+#
+# Sent as packets, so these names work on every supported version. Bukkit's
+# pre-1.20 names (SPELL_MOB, CRIT_MAGIC, VILLAGER_HAPPY, ...) are translated.
+# ==========================================================
+
+particles:
+
+  enabled: true
+
+  critical:
+    enabled: true
+    particle: CRIT
+    amount: 8
+
+  fire:
+    enabled: true
+    particle: FLAME
+    amount: 6
+
+  poison:
+    enabled: true
+    particle: SPELL_MOB
+    amount: 5
+
+  magic:
+    enabled: true
+    particle: ENCHANT
+    amount: 6
+
+  explosion:
+    enabled: true
+    particle: EXPLOSION_NORMAL
+    amount: 6
+
+# ==========================================================
+# Performance
+# ==========================================================
+
+performance:
+
+  # Ticks between animation steps. 1 is smoothest; higher is cheaper.
+  animation-interval: 1
+
+  # Maximum simultaneous displays a single player receives.
+  max-per-player: 50
+
+  # Detach viewers that move out of view-distance mid-animation.
+  distance-culling: true
+
+# ==========================================================
+# Integrations
+# ==========================================================
+
+integrations:
+
+  luckperms: true
+
+  placeholderapi: true
+
+# ==========================================================
+# Permissions
+# ==========================================================
+
+permissions:
+
+  # Require a permission to see numbers at all. The player-side toggle in
+  # /cdn toggle works regardless of this setting.
+  require-view-permission: false
+
+  view-permission: "cdn.view"
+
+  # Honour per-style permissions in addition to style profiles.
+  style-permissions: true
+
+# ==========================================================
+# Advanced
+# ==========================================================
+
+advanced:
+
+  # Killing blows flash briefly instead of playing the full animation.
+  remove-on-death: true
+
+  # Ignore plugin-generated fake damage that deals nothing.
+  ignore-zero-damage: true
+
+  # Dump TextDisplay metadata to the console (diagnostics only). Bounded: the
+  # listener tracks at most debug-log-limit entity ids and forgets destroyed ones.
+  packet-debug: false
+
+  debug-log-limit: 256
+
+  # Scheduler selection: auto detects Folia, true/false force it.
+  folia-mode: auto
+
+  # bStats is off unless you switch it on AND set your own plugin id below.
+  metrics: false
+
+  # Your bStats plugin id from https://bstats.org. 0 disables reporting.
+  metrics-id: 0

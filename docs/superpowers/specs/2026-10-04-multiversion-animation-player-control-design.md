@@ -289,3 +289,43 @@ plus the modern backend path proven on 1.21.x.
 | Modern index block wrong for 26.x | constant block reused from the working 0.2.0 build, asserted on 1.21.x E2E |
 | 26.3 bot unavailable | 26.3 validated for lifecycle + commands; backend proven on 1.21.x |
 | Compiling against 1.16.5 API blocks a needed modern call | the four modern-only calls are reflection-guarded with fallbacks |
+
+## 16. Implementation notes (added during execution)
+
+Findings that changed or sharpened the design, recorded because the spec is the
+authority for a later reader:
+
+1. **The build is Gradle, not Maven** (instruction from the maintainer mid-flight).
+   Kotlin DSL, wrapper committed, `com.gradleup.shadow` 9.6.1 for the platform jars,
+   `gradle.properties` as the single source of version truth.
+2. **The practical legacy floor is 1.17.1, not 1.16.5.** Both jars are Java 17
+   bytecode; Paper 1.16.5 refuses to boot on Java 17 at all — verified in a container:
+   `Unsupported Java detected (61.0). Only up to Java 16 is supported.` A 1.16.x server
+   therefore cannot load this build. Supporting it needs `javaRelease=16` or lower and
+   a Java 16 server, and is recorded here rather than silently promised.
+3. **Adventure's JSON serializer needs the gson artifact.** `adventure-text-serializer-json`
+   is only an API plus a dummy implementation that throws
+   `No JsonComponentSerializer implementation found`; the working serializer comes from
+   `adventure-text-serializer-gson`. Gson is therefore shaded and relocated too.
+4. **Metadata payloads are described without PacketEvents types.** Reading
+   `EntityDataTypes` runs a static initialiser that loads versioned registries and
+   needs a live `PacketEventsAPI`, so a payload built from those constants cannot be
+   unit-tested. The renderers now emit a JDK-only `MetadataValue` record and
+   `PacketUtil` converts it to `EntityData` at send time. This is what makes the exact
+   index/kind/value contract testable.
+5. **Format colours beat the style colour.** If `styles.<type>.color` were applied
+   unconditionally it repainted `"&c{damage}"` white. A colour inside the format now
+   wins; the setting is the default. Documented in config.yml.
+6. **Server detection needs both name and banner.** Newer Paper versions report a
+   version string without "paper" in it, which made the plugin report "Unknown" on
+   1.21.8 and 26.3; detection now consults `Bukkit.getName()` as well.
+7. **Damage-cause mapping is name-based.** A switch over `DamageCause` constants
+   cannot compile against the 1.16.5 API for causes added later (STALAGMITE,
+   SONIC_BOOM), and a name mapping also keeps working on future versions without a
+   recompile.
+8. **Verified end to end in containers** (packet-level, not log-level): the modern
+   renderer on Paper 1.21.8 — spawn, damage text at metadata index 23, 29 teleports
+   rising then falling, destroy, toggle suppression and restoration, and a real mob hit
+   — plus the legacy renderer on Paper 1.17.1 and 1.20.1, and the modern jar on Paper
+   26.3 with an older-protocol bot translated through ViaVersion.
+

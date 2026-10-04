@@ -1,0 +1,110 @@
+# CustomDamageNumbers messages.
+#
+# Both legacy &a codes and MiniMessage tags are accepted.
+# {placeholders} are filled in per message.
+
+prefix: "&d[CDN] &r"
+
+# ==========================================================
+# Command framing
+# ==========================================================
+#
+# Every colour and glyph used by the bordered boxes (/cdn help, stats, version,
+# backend) is configurable here. width is the total line width in characters;
+# the box contents are padded to it, so changing it reshapes every box at once.
+# Titles, subtitles and labels below are the contents.
+
+frame:
+  width: 58
+  border: "&8"
+  title: "&d&l"
+  subtitle: "&7"
+  label: "&7"
+  value: "&f"
+  accent: "&b"
+  footer: "&8"
+  glyph: "◆"
+  bullet: "▪"
+
+# Box titles and subtitles
+help-title: "CustomDamageNumbers"
+help-subtitle: "&7{version} &8· &7{backend} renderer"
+help-footer: "&7Hover a command in game, or run &f{command}"
+stats-title: "Statistics"
+stats-subtitle: "&7{server} &8· &7{scheduler}"
+stats-footer: "&7Tick cost is the average time one animation step takes."
+version-title: "Version"
+version-footer: "&8This jar serves 1.20.2 - 26.x; the legacy jar serves 1.17.x - 1.20.1."
+backend-title: "Renderer"
+backend-footer: "&8Fade and scale need the modern jar (1.20.2+)."
+
+# ==========================================================
+# Command labels and values
+# ==========================================================
+
+# Command output
+unknown-subcommand: "&cUnknown subcommand. Try &e/cdn help&c."
+no-permission: "&cYou do not have permission."
+players-only: "&cOnly players can use this command."
+player-not-found: "&cPlayer &e{player} &cis not online."
+plugin-disabled: "&cDamage numbers are disabled in config.yml (general.enabled)."
+
+# reload
+reload: "&aConfiguration and messages reloaded."
+reload-config: "&aConfiguration reloaded from config.yml."
+reload-messages: "&aMessages reloaded from messages.yml."
+
+# test
+test: "&aSpawned a &e{type} &adisplay for &e{amount}&a."
+test-failed: "&cNothing was spawned: check general.enabled, view distance and your display cap."
+unknown-type: "&cUnknown damage type: &e{type}"
+invalid-amount: "&cInvalid amount: &e{amount}"
+
+# toggle
+toggle-on-self: "&aDamage numbers are now &fon&a for you."
+toggle-off-self: "&cDamage numbers are now &foff&c for you."
+toggle-other: "&aDamage numbers for &e{player}&a are now &f{state}&a."
+
+# debug
+debug: "&aDebug logging is now &f{state}&a."
+
+# clear
+clear-all: "&aCleared &e{count} &adisplay(s) for every viewer."
+clear-player: "&aCleared &e{count} &adisplay(s) for &e{player}&a."
+
+# style
+style-usage: "&eUsage: &f/cdn style [player] <profile|default>"
+style-unknown: "&cNo style profile named &e{profile}&c. Check style-profiles in config.yml."
+style-set: "&aStyle for &e{player}&a set to &f{profile}&a."
+
+# version / backend values
+value-yes: "&ayes"
+value-no: "&cno"
+backend-unknown: "&cNo renderer is active."
+version-support: "&7This jar serves &f1.20.2 - 26.x&7; install &fCustomDamageNumbers-Legacy&7 for &f1.17.x - 1.20.1&7."
+
+# ==========================================================
+# Box row labels
+# ==========================================================
+
+help-label-permission: "&8[{permission}]"
+
+stats-backend: "Backend"
+stats-scheduler: "Scheduler"
+stats-server: "Server"
+stats-active: "Active displays"
+stats-viewers: "Viewer slots"
+stats-merges: "Merge entries"
+stats-ticks: "Animation ticks"
+stats-tick-cost: "Tick cost"
+stats-optouts: "Players opted out"
+
+backend-label-scale: "Scale animation"
+backend-label-fade: "Fade animation"
+backend-label-scheduler: "Scheduler"
+backend-label-cost: "Tick cost"
+
+version-label-plugin: "Plugin"
+version-label-renderer: "Renderer"
+version-label-server: "Server"
+version-label-support: "Supports"
