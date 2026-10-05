@@ -1,6 +1,9 @@
 package in.potenfyr.cdn;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import in.potenfyr.cdn.api.CustomDamageNumbersApi;
+import in.potenfyr.cdn.api.ApiProvider;
+import in.potenfyr.cdn.api.impl.ApiServiceImpl;
 import in.potenfyr.cdn.command.CommandDispatcher;
 import in.potenfyr.cdn.config.ConfigManager;
 import in.potenfyr.cdn.damage.DamageListener;
@@ -56,6 +59,7 @@ public abstract class CustomDamageNumbersPlugin extends JavaPlugin {
     private Ecosystem ecosystem = Ecosystem.UNKNOWN;
     private MinecraftVersion serverVersion = MinecraftVersion.UNKNOWN;
     private StyleResolver styleResolver = StyleResolver.NONE;
+    private CustomDamageNumbersApi api;
 
     /** Creates the renderer for this jar. */
     protected abstract RenderBackend createBackend();
@@ -163,6 +167,9 @@ public abstract class CustomDamageNumbersPlugin extends JavaPlugin {
         metrics = new MetricsRegistrar(this, debug);
         metrics.start(configManager.isMetricsEnabled(), configManager.getMetricsId());
 
+        api = new ApiServiceImpl(this, configManager, damageService, preferences);
+        ApiProvider.register(this, api);
+
         registerPlaceholderApi();
 
         getLogger().info("CustomDamageNumbers " + getDescription().getVersion()
@@ -213,6 +220,9 @@ public abstract class CustomDamageNumbersPlugin extends JavaPlugin {
 
         // Logged first so a failure in any single teardown step is still attributable.
         getLogger().info("Disabling CustomDamageNumbers...");
+
+        ApiProvider.unregister(this);
+        api = null;
 
         if (animationHandle != null) {
             animationHandle.cancel();

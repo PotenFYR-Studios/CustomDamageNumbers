@@ -1,5 +1,7 @@
 package in.potenfyr.cdn.damage;
 
+import in.potenfyr.cdn.api.event.DamageNumberSpawnEvent;
+import in.potenfyr.cdn.api.impl.ApiEvents;
 import in.potenfyr.cdn.config.AnimationSettings;
 import in.potenfyr.cdn.config.ConfigManager;
 import in.potenfyr.cdn.config.MergeSettings;
@@ -23,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -168,6 +171,30 @@ public final class DamageService {
             return false;
         }
 
+        // API hook: other plugins may cancel the display or restyle it. Firing
+        // here means only displays that are actually about to appear emit the
+        // event; merging into an existing display does not.
+        DamageNumberSpawnEvent spawnEvent = ApiEvents.fire(
+                victim, attacker, effectiveType.styleKey(), isCritical, damage, anchor);
+
+        if (spawnEvent == null || spawnEvent.isCancelled()) {
+
+            if (spawnEvent != null) {
+                debug.debug("Display on %s cancelled by an API listener", victim.getType());
+            }
+
+            return false;
+        }
+
+        java.util.OptionalDouble eventValue = sanitiseDamage(spawnEvent.getValue());
+
+        if (eventValue.isEmpty()) {
+            return false;
+        }
+
+        damage = eventValue.getAsDouble();
+        style = ApiEvents.styledFrom(spawnEvent, style);
+
         int durationTicks = durationFor(victim, damage, animation);
 
         AnimationSettings displaySettings = isCritical
@@ -196,7 +223,6 @@ public final class DamageService {
         // Critical hits render larger for their whole life; the multiplier is applied
         // to every frame so the curve keeps interpolating between the configured
         // start and end scales.
-        double angle = display.getAngle();
         AnimationSettings frameSettings = isCritical
                 ? animation.withCriticalScale(config.critical().scaleMultiplier())
                 : animation;
@@ -205,23 +231,7 @@ public final class DamageService {
                 ? (float) config.critical().scaleMultiplier()
                 : 1.0f);
 
-        AnimationFrame initialFrame = AnimationCurve.frame(0, frameSettings, angle);
-
-        display.setLastScale(initialFrame.scale());
-        display.setLastOpacity(initialFrame.opacityByte());
-
-        active.add(display);
-
-        for (Player viewer : viewers) {
-            attach(display, viewer.getUniqueId());
-        }
-
-        backend.spawn(display, viewers);
-        effects.particles(display, viewers);
-
-        if (isCritical) {
-            effects.criticalSound(display, viewers);
-        }
+        activate(display, viewers, frameSettings, true);
 
         mergeRegistry.record(
                 display,
@@ -234,6 +244,147 @@ public final class DamageService {
                 displaySettings.startScale(), victim.getHealth());
 
         return true;
+    }
+
+    /**
+     * Spawns one display described by the API, already resolved onto concrete
+     * style and animation settings.
+     *
+     * <p>Unlike the damage pipeline this path skips the victim filters, the
+     * style profile lookup and hit merging: the caller asked for this exact
+     * number, so the plugin renders exactly that. The
+     * {@link DamageNumberSpawnEvent} still fires so listeners can restyle or
+     * cancel API numbers like any other.</p>
+     *
+     * @param spawn the resolved request
+     * @return whether a display was created
+     */
+    public boolean spawnCustom(CustomSpawn spawn) {
+
+        if (spawn == null || !config.isEnabled()) {
+            return false;
+        }
+
+        if (spawn.victim() == null && spawn.location() == null) {
+            return false;
+        }
+
+        java.util.OptionalDouble sanitised = sanitiseDamage(spawn.value());
+
+        if (sanitised.isEmpty()) {
+            return false;
+        }
+
+        if (active.size() >= config.getMaxActiveDisplays()) {
+
+            debug.debug("Display cap reached (%d); skipping a custom display",
+                    config.getMaxActiveDisplays());
+
+            return false;
+        }
+
+        AnimationSettings animation = spawn.animation();
+
+        Location anchor = spawn.victim() != null
+                ? anchorFor(spawn.victim(), animation)
+                : spawn.location().clone();
+
+        if (anchor.getWorld() == null) {
+            return false;
+        }
+
+        List<Player> viewers = spawn.viewers() != null
+                ? onlineViewers(spawn.viewers())
+                : selectViewers(anchor);
+
+        if (viewers.isEmpty()) {
+            debug.debug("No viewers for a custom %.1f display", spawn.value());
+            return false;
+        }
+
+        // API hook: consistent with pipeline spawns.
+        DamageNumberSpawnEvent spawnEvent = ApiEvents.fire(
+                spawn.victim(), spawn.attacker(), spawn.typeKey(), spawn.critical(),
+                sanitised.getAsDouble(), anchor);
+
+        if (spawnEvent == null || spawnEvent.isCancelled()) {
+            return false;
+        }
+
+        java.util.OptionalDouble eventValue = sanitiseDamage(spawnEvent.getValue());
+
+        if (eventValue.isEmpty()) {
+            return false;
+        }
+
+        double value = eventValue.getAsDouble();
+        StyleSettings style = ApiEvents.styledFrom(spawnEvent, spawn.style());
+
+        boolean critical = spawn.critical();
+
+        AnimationSettings frameSettings = critical
+                ? animation.withCriticalScale(config.critical().scaleMultiplier())
+                : animation;
+
+        int entityId = newEntityId();
+
+        FloatingDamage display = new FloatingDamage(
+                entityId,
+                spawn.victim() == null ? null : spawn.victim().getUniqueId(),
+                anchor.getWorld().getUID(),
+                anchor,
+                value,
+                spawn.type() == null ? DamageType.NORMAL : spawn.type(),
+                critical,
+                animation.durationTicks(),
+                TextRenderer.toJsonForDamage(value, style),
+                AnimationCurve.angleFor(entityId),
+                animation.randomOffset() ? spread(animation) : 0.0,
+                animation.randomOffset() ? spread(animation) : 0.0);
+
+        display.setLastScale(1.0f);
+        display.setLastOpacity((byte) -1);
+        display.setScaleMultiplier(critical ? (float) config.critical().scaleMultiplier() : 1.0f);
+
+        activate(display, viewers, frameSettings, !spawn.silent());
+
+        debug.debug("Spawned custom %s display %d for %.1f (%d viewers, %d ticks)",
+                backend.id(), entityId, value, viewers.size(), animation.durationTicks());
+
+        return true;
+    }
+
+    /**
+     * Finishes a spawn: applies the first animation frame, registers the display,
+     * attaches viewers, sends the spawn packets and plays the configured effects.
+     */
+    private void activate(
+            FloatingDamage display,
+            List<Player> viewers,
+            AnimationSettings frameSettings,
+            boolean withEffects
+    ) {
+
+        AnimationFrame initialFrame = AnimationCurve.frame(0, frameSettings, display.getAngle());
+
+        display.setLastScale(initialFrame.scale());
+        display.setLastOpacity(initialFrame.opacityByte());
+
+        active.add(display);
+
+        for (Player viewer : viewers) {
+            attach(display, viewer.getUniqueId());
+        }
+
+        backend.spawn(display, viewers);
+
+        if (withEffects) {
+            effects.particles(display, viewers);
+
+            if (display.isCritical()) {
+                effects.criticalSound(display, viewers);
+            }
+        }
     }
 
     private void mergeInto(
@@ -578,6 +729,31 @@ public final class DamageService {
             if (viewer != null && viewer.isOnline()) {
                 viewers.add(viewer);
             }
+        }
+
+        return viewers;
+    }
+
+    /**
+     * Filters a forced API viewer set down to players that can actually receive
+     * packets: online and still opted in. Explicitly named viewers bypass the
+     * nearby-selection and per-player caps.
+     */
+    private List<Player> onlineViewers(Set<Player> requested) {
+
+        List<Player> viewers = new ArrayList<>(requested.size());
+
+        for (Player player : requested) {
+
+            if (player == null || !player.isOnline()) {
+                continue;
+            }
+
+            if (!preferences.isEnabled(player.getUniqueId())) {
+                continue;
+            }
+
+            viewers.add(player);
         }
 
         return viewers;

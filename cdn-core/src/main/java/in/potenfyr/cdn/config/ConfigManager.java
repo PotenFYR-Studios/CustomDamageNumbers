@@ -154,6 +154,20 @@ public class ConfigManager {
         return animation;
     }
 
+    /**
+     * A named animation preset from presets.yml, resolved without a config.yml
+     * overlay. Exposed for the API, whose builder can base a number on any
+     * preset by name.
+     *
+     * @return {@code null} when the preset does not exist
+     */
+    public AnimationSettings preset(String name) {
+
+        ConfigurationSection section = presetSection(name == null ? "default" : name);
+
+        return section == null ? null : readAnimation(null, section);
+    }
+
     /** Style for a damage type, honouring the player's style profile. */
     public StyleSettings styleFor(DamageType type, String profile) {
 

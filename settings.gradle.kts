@@ -5,6 +5,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+include("cdn-api")
 include("cdn-core")
 include("cdn-modern")
 include("cdn-legacy")
