@@ -11,7 +11,7 @@ export interface DocSection {
 
 export type DocBlock =
   | { type: 'text'; content: string }
-  | { type: 'code'; title?: string; lang: 'ts' | 'bash' | 'json' | 'yaml' | 'text'; content: string }
+  | { type: 'code'; title?: string; lang: 'ts' | 'bash' | 'json' | 'yaml' | 'java' | 'text'; content: string }
   | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'note'; tone: 'info' | 'warn' | 'tip'; content: string }
   | { type: 'list'; items: string[] }
@@ -375,6 +375,46 @@ advanced:
           type: 'note',
           tone: 'info',
           content: 'Every value is read on reload: /cdn reload applies changes live, without a restart.',
+        },
+        { type: 'h3', content: 'the developer API' },
+        {
+          type: 'text',
+          content: 'Other plugins can spawn damage numbers with their own text, style and animation, restyle or cancel everything the plugin renders, and manage per-player state. Add the cdn-api artifact as a compile-only dependency and softdepend on CustomDamageNumbers.',
+        },
+        {
+          type: 'code',
+          lang: 'java',
+          title: 'Spawning a number from your plugin',
+          content: `CustomDamageNumbersApi api = CustomDamageNumbersApi.get().orElse(null);
+if (api != null) {
+    api.spawn(api.numberBuilder()
+            .at(victim)                    // or .at(location) for a fixed anchor
+            .value(42.5)
+            .type("fire")                  // styles.<key>; .format(...) overrides it
+            .format("<gold>✦ {damage}")    // MiniMessage or legacy & codes
+            .preset("explosive")           // animation preset from presets.yml
+            .critical(true));              // crit scale, particles and sound
+}`,
+        },
+        {
+          type: 'code',
+          lang: 'java',
+          title: 'Restyling every number the plugin renders',
+          content: `@EventHandler
+public void onNumber(DamageNumberSpawnEvent event) {
+    if (event.getTypeKey().equals("fire")) {
+        event.setFormat("<dark_red>🔥 {damage}");
+    }
+    if (event.getAttacker() != null
+            && event.getAttacker().hasPermission("myplugin.double")) {
+        event.setValue(event.getValue() * 2);
+    }
+}`,
+        },
+        {
+          type: 'note',
+          tone: 'info',
+          content: 'Build it: ./gradlew :cdn-api:publishToMavenLocal puts in.potenfyr:cdn-api:1.0.0 into your local Maven repository. Every builder option is optional - unspecified values fall back to config.yml, a preset overrides those per key, explicit settings win over everything. The API must be used on the main thread.',
         },
       ],
     },

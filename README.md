@@ -101,17 +101,20 @@ general:
   default-view-enabled: true # what a player sees before /cdn toggle
 
 animation:
-  duration-ticks: 30         # total lifetime (20 ticks = 1s)
-  rise-ticks: 10             # ticks rising before the sink starts
-  vertical-speed: 0.08       # blocks per tick while rising
-  scale-animation: true
-  start-scale: 1.3
-  end-scale: 0.8
-  fade-out: true             # modern jar only
-  bounce: true
-  follow-entity: true        # the number stays on the damaged entity
-  anchor-height: 1.8
-  follow-smoothing: 0.35     # 0 = snap each tick, higher = softer
+  preset: default            # animation preset from presets.yml
+  # any key below overrides that single value of the chosen preset
+  #duration-ticks: 30        # total lifetime (20 ticks = 1s)
+  #rise-ticks: 10            # ticks rising before the sink starts
+  #vertical-speed: 0.08      # blocks per tick while rising
+  #scale-animation: true
+  #start-scale: 1.3
+  #end-scale: 0.8
+  #fade-out: true            # modern jar only
+  #bounce: true
+  #follow-entity: true       # the number stays on the damaged entity
+  #follow-smoothing: 0.35    # 0 = snap each tick, higher = softer
+  #position: { x: 0.0, y: 1.8, z: 0.0 }
+  #offset: { random: true, spread: 0.20 }
 
 merge-system:
   enabled: true
@@ -125,7 +128,36 @@ styles:
 style-profiles:              # handed out with cdn.style.<name>
   fortnite: { critical: { format: "{damage}", color: "#FFFF00" } }
   mmo:      { normal: { format: "{damage} DMG" }, critical: { format: "{damage} CRIT", color: "#FF5555" } }
+
+critical-hits:
+  sound-type: entity.player.attack.crit   # vanilla keys and Bukkit-style names both work
 ```
+
+## 🧩 API for developers
+
+Other plugins can spawn damage numbers, restyle everything the plugin renders,
+or manage per-player state. Add `in.potenfyr:cdn-api:1.0.0` (built with
+`./gradlew :cdn-api:publishToMavenLocal`) as a `compileOnly` dependency,
+`softdepend: [CustomDamageNumbers]` in your plugin.yml, then:
+
+```java
+CustomDamageNumbersApi api = CustomDamageNumbersApi.get().orElse(null);
+if (api != null) {
+    api.spawn(api.numberBuilder()
+            .at(victim)                      // or .at(location) for a fixed anchor
+            .value(42.5)
+            .type("fire")                    // styles.<key>, or set .format(...)
+            .format("<gold>✦ {damage}")      // MiniMessage or legacy codes
+            .preset("explosive")             // animation preset from presets.yml
+            .critical(true));
+}
+```
+
+Every builder option is optional: unspecified values fall back to the plugin
+configuration, a `preset` overrides those per key, and explicit builder
+settings win over everything. Listen to `DamageNumberSpawnEvent` to cancel or
+restyle every number the plugin renders, including your own. See
+`cdn-api/src/main/java/in/potenfyr/cdn/api` for the full surface.
 
 Every string the plugin prints lives in `messages.yml`, including the `frame:` block (width, border, title, subtitle, label, value, accent, footer, glyph, bullet) — edit it once and both the chat panels and the console panels change.
 
