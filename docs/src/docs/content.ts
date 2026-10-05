@@ -225,24 +225,85 @@ const CURRENT: DocVersion = {
           lang: 'yaml',
           title: 'config.yml (excerpt)',
           content: `animation:
-  duration-ticks: 30        # total lifetime (20 ticks = 1s)
-  rise-ticks: 10            # ticks rising before the sink starts
-  vertical-speed: 0.08      # blocks per tick while rising
-  horizontal-randomness: 0.20
-  scale-animation: true
-  start-scale: 1.3
-  end-scale: 0.8
-  fade-out: true            # modern jar only
-  fade-start: 0.6           # progress point (0-1) where fading begins
+  # Which animation preset from presets.yml to use:
+  # default | subtle | explosive | orbit
+  preset: default
+
+  # Any key below overrides that single value of the chosen preset.
+  # Comment a line out to fall back to the preset's value.
+
+  #duration-ticks: 30        # total lifetime (20 ticks = 1s)
+  #rise-ticks: 10            # ticks rising before the sink starts
+  #vertical-speed: 0.08      # blocks per tick while rising
+  #horizontal-randomness: 0.20
+  #scale-animation: true
+  #start-scale: 1.3
+  #end-scale: 0.8
+  #fade-out: true            # modern jar only
+  #fade-start: 0.6           # progress point (0-1) where fading begins
+  #bounce: true
+  #bounce-strength: 0.35
+  #rotation: false
+  #rotation-speed: 0.10
+  #follow-entity: true       # stay attached to the victim
+  #follow-smoothing: 0.35    # 0 = snap every tick, higher = softer lag
+
+  # Where the number sits, relative to the entity's feet.
+  #position:
+  #  x: 0.0
+  #  y: 1.8
+  #  z: 0.0
+
+  # Random spawn offset so stacked hits stay readable.
+  #offset:
+  #  random: true
+  #  spread: 0.20`,
+        },
+        {
+          type: 'code',
+          lang: 'yaml',
+          title: 'presets.yml (excerpt)',
+          content: `# Each preset supports the movement options above plus position and offset.
+# Add your own presets as new top-level sections and select them by name.
+
+default:
+  duration-ticks: 30
+  rise-ticks: 10
+  vertical-speed: 0.08
   bounce: true
   bounce-strength: 0.35
-  rotation: false
-  rotation-speed: 0.10
-  random-offset: true
-  spawn-spread: 0.20        # so stacked hits stay readable
-  follow-entity: true       # stay attached to the victim
-  anchor-height: 1.8        # above the entity's feet
-  follow-smoothing: 0.35    # 0 = snap every tick, higher = softer lag`,
+  follow-entity: true
+  follow-smoothing: 0.35
+
+  position:
+    x: 0.0
+    y: 1.8
+    z: 0.0
+
+  offset:
+    random: true
+    spread: 0.20
+
+explosive:
+  duration-ticks: 45
+  vertical-speed: 0.14
+  start-scale: 1.8
+  bounce-strength: 0.6
+  follow-entity: false
+
+  position:
+    x: 0.0
+    y: 1.4
+    z: 0.0
+
+  offset:
+    random: true
+    spread: 0.50`,
+        },
+        {
+          type: 'note',
+          tone: 'info',
+          content: 'Upgrading from an older config with all animation keys uncommented? Those values then win over the preset - comment out the lines you want the preset to control.',
         },
         { type: 'h3', content: 'merging, criticals, styles, particles' },
         {
@@ -259,7 +320,7 @@ critical-hits:
   enabled: true
   scale-multiplier: 1.5
   sound: true
-  sound-type: ENTITY_PLAYER_ATTACK_CRIT
+  sound-type: entity.player.attack.crit   # vanilla keys and Bukkit-style names both work
   volume: 1.0
   pitch: 1.2
 
