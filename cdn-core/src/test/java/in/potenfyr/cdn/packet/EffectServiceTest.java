@@ -1,5 +1,6 @@
 package in.potenfyr.cdn.packet;
 
+import in.potenfyr.cdn.config.ConfigManager;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,10 +49,19 @@ class EffectServiceTest {
     @Test
     void soundKeysAreNormalised() {
 
-        assertEquals("ENTITY_PLAYER_ATTACK_CRIT", EffectService.normaliseSound("entity.player.attack.crit"));
-        assertEquals("ENTITY_PLAYER_ATTACK_CRIT", EffectService.normaliseSound("ENTITY_PLAYER_ATTACK_CRIT"));
-        assertEquals("ENTITY_PLAYER_ATTACK_CRIT",
+        assertEquals("entity.player.attack.crit", EffectService.normaliseSound("entity.player.attack.crit"));
+        assertEquals("entity.player.attack.crit", EffectService.normaliseSound("ENTITY_PLAYER_ATTACK_CRIT"));
+        assertEquals("entity.player.attack.crit",
                 EffectService.normaliseSound("minecraft:entity.player.attack.crit"));
-        assertEquals("ENTITY_PLAYER_ATTACK_CRIT", EffectService.normaliseSound(null));
+        assertEquals(ConfigManager.DEFAULT_SOUND, EffectService.normaliseSound(null));
+        assertEquals(ConfigManager.DEFAULT_SOUND, EffectService.normaliseSound("   "));
+    }
+
+    @Test
+    void dottedSoundKeysKeepTheirUnderscores() {
+
+        assertEquals("block.note_block.plant", EffectService.normaliseSound("block.note_block.plant"));
+        assertEquals("block.note_block.plant",
+                EffectService.normaliseSound("minecraft:block.note_block.plant"));
     }
 }

@@ -147,8 +147,10 @@ critical-hits:
   scale-multiplier: 1.5
 
   # Play a sound when a critical hit lands (sent as a packet).
+  # Vanilla sound keys such as entity.player.attack.crit, or Bukkit-style
+  # names such as ENTITY_PLAYER_ATTACK_CRIT - both work.
   sound: true
-  sound-type: ENTITY_PLAYER_ATTACK_CRIT
+  sound-type: entity.player.attack.crit
   volume: 1.0
   pitch: 1.2
 

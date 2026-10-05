@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.sound.Sound;
 import com.github.retrooper.packetevents.protocol.sound.SoundCategory;
-import com.github.retrooper.packetevents.protocol.sound.Sounds;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
@@ -140,17 +139,17 @@ public final class PacketUtil {
         send(viewer, new WrapperPlayServerParticle(particle, true, position, offset, speed, count));
     }
 
-    /** Plays a sound client-side; the key is a vanilla sound name such as {@code ENTITY_PLAYER_ATTACK_CRIT}. */
+    /**
+     * Plays a sound client-side; the handle is resolved once by
+     * {@link EffectService#resolveSound} rather than per viewer.
+     */
     public static void sound(
             Player viewer,
-            String soundKey,
+            Sound sound,
             Vector3d position,
             float volume,
             float pitch
     ) {
-
-        Sound sound = Sounds.getByNameOrCreate(soundKey);
-
         send(viewer, new WrapperPlayServerSoundEffect(
                 sound, SoundCategory.PLAYER, position, volume, pitch));
     }

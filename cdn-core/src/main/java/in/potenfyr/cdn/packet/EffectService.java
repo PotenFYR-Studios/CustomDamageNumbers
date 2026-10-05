@@ -3,6 +3,8 @@ package in.potenfyr.cdn.packet;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleType;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
+import com.github.retrooper.packetevents.protocol.sound.Sound;
+import com.github.retrooper.packetevents.protocol.sound.Sounds;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import in.potenfyr.cdn.config.ConfigManager;
@@ -62,6 +64,9 @@ public final class EffectService {
     /** Resolved particle handles, keyed by canonical name. */
     private final Map<String, Particle<?>> particleCache = new HashMap<>();
 
+    /** Resolved sound handles, keyed by canonical key. */
+    private final Map<String, Sound> soundCache = new HashMap<>();
+
     public EffectService(ConfigManager config) {
         this.config = config;
     }
@@ -100,10 +105,15 @@ public final class EffectService {
             return;
         }
 
+        Sound sound = resolveSound(critical.soundType());
+
+        if (sound == null) {
+            return;
+        }
+
         Location anchor = display.getAnchor();
 
         Vector3d position = new Vector3d(anchor.getX(), anchor.getY(), anchor.getZ());
-        String sound = normaliseSound(critical.soundType());
 
         for (Player viewer : viewers) {
             PacketUtil.sound(viewer, sound, position, critical.volume(), critical.pitch());
@@ -132,6 +142,25 @@ public final class EffectService {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Particle<?> toParticle(ParticleType<?> type) {
         return new Particle(type);
+    }
+
+    /**
+     * Resolves a configured sound name to a PacketEvents handle, with caching.
+     *
+     * @return {@code null} when the name is not a usable sound key; callers skip
+     *         the sound rather than throwing inside the damage event
+     */
+    public Sound resolveSound(String configured) {
+
+        String key = normaliseSound(configured);
+
+        return soundCache.computeIfAbsent(key, name -> {
+            try {
+                return Sounds.getByNameOrCreate(name);
+            } catch (RuntimeException unknown) {
+                return null;
+            }
+        });
     }
 
     /**
@@ -165,19 +194,33 @@ public final class EffectService {
         return LEGACY_PARTICLE_ALIASES.getOrDefault(name, name);
     }
 
-    /** Canonicalises a configured sound key into a vanilla sound name. */
+    /**
+     * Canonicalises a configured sound name into the lowercase dotted form the
+     * vanilla sound registry uses, e.g. {@code entity.player.attack.crit}.
+     *
+     * <p>A name that already contains dots is treated as a vanilla key and only
+     * case-normalised, so keys with legal underscores such as
+     * {@code block.note_block.plant} survive. Bukkit enum-style names such as
+     * {@code ENTITY_PLAYER_ATTACK_CRIT} have their underscores read as dots.</p>
+     */
     public static String normaliseSound(String configured) {
 
         if (configured == null || configured.isBlank()) {
             return ConfigManager.DEFAULT_SOUND;
         }
 
-        String name = configured.trim().toUpperCase(Locale.ROOT);
+        String name = configured.trim();
 
-        if (name.startsWith("MINECRAFT:")) {
-            name = name.substring("MINECRAFT:".length());
+        int namespace = name.indexOf(':');
+
+        if (namespace >= 0) {
+            name = name.substring(namespace + 1);
         }
 
-        return name.replace('.', '_').replace('-', '_');
+        if (name.indexOf('.') >= 0) {
+            return name.toLowerCase(Locale.ROOT);
+        }
+
+        return name.toLowerCase(Locale.ROOT).replace('-', '_').replace('_', '.');
     }
 }

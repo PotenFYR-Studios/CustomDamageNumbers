@@ -25,7 +25,7 @@ import java.util.Map;
 public class ConfigManager {
 
     public static final String DEFAULT_VIEW_PERMISSION = "cdn.view";
-    public static final String DEFAULT_SOUND = "ENTITY_PLAYER_ATTACK_CRIT";
+    public static final String DEFAULT_SOUND = "entity.player.attack.crit";
     public static final int DEFAULT_DEBUG_LOG_LIMIT = 256;
 
     private final JavaPlugin plugin;
