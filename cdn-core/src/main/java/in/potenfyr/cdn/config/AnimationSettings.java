@@ -24,6 +24,8 @@ package in.potenfyr.cdn.config;
  * @param randomOffset          whether each display gets a random spawn offset
  * @param spawnSpread           half-range of the random spawn offset, in blocks
  * @param anchorHeight          blocks above the entity's feet the number anchors to
+ * @param positionX             horizontal offset from the entity's centre, in blocks
+ * @param positionZ             horizontal offset from the entity's centre, in blocks
  * @param followEntity          whether the anchor tracks the live entity
  * @param followSmoothing       anchor smoothing factor in {@code [0,1)}, 0 = snap
  * @param criticalScaleMultiplier extra scale applied to critical hits
@@ -45,6 +47,8 @@ public record AnimationSettings(
         boolean randomOffset,
         double spawnSpread,
         double anchorHeight,
+        double positionX,
+        double positionZ,
         boolean followEntity,
         double followSmoothing,
         double criticalScaleMultiplier
@@ -65,6 +69,8 @@ public record AnimationSettings(
         rotationSpeed = clampDouble(rotationSpeed, -1.0, 1.0);
         spawnSpread = clampDouble(spawnSpread, 0.0, 8.0);
         anchorHeight = clampDouble(anchorHeight, -4.0, 8.0);
+        positionX = clampDouble(positionX, -8.0, 8.0);
+        positionZ = clampDouble(positionZ, -8.0, 8.0);
         followSmoothing = clampDouble(followSmoothing, 0.0, 0.95);
         criticalScaleMultiplier = clampDouble(criticalScaleMultiplier, 0.1, 8.0);
     }
@@ -80,13 +86,14 @@ public record AnimationSettings(
                 durationTicks, riseTicks, verticalSpeed, horizontalRandomness,
                 scaleAnimation, startScale * multiplier, endScale * multiplier,
                 fadeOut, fadeStart, bounce, bounceStrength, rotation, rotationSpeed,
-                randomOffset, spawnSpread, anchorHeight, followEntity, followSmoothing,
-                criticalScaleMultiplier);
+                randomOffset, spawnSpread, anchorHeight, positionX, positionZ,
+                followEntity, followSmoothing, criticalScaleMultiplier);
     }
 
     /**
-     * Sensible defaults, matching the shipped config.yml; used by unit tests and
-     * as the fallback when a config file is missing keys.
+     * Sensible defaults, matching the shipped config.yml and the {@code default}
+     * preset in presets.yml; used by unit tests and as the fallback when a config
+     * file is missing keys.
      */
     public static AnimationSettings defaults() {
         return new AnimationSettings(
@@ -96,7 +103,7 @@ public record AnimationSettings(
                 true, 0.35,
                 false, 0.10,
                 true, 0.20,
-                1.8, true, 0.35,
+                1.8, 0.0, 0.0, true, 0.35,
                 1.5);
     }
 

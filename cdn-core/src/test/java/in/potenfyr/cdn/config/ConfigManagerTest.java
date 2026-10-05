@@ -104,6 +104,107 @@ class ConfigManagerTest {
     }
 
     @Test
+    void presetIsSelectedFromThePresetLibrary() {
+
+        FileConfiguration presets = yaml("""
+                subtle:
+                  duration-ticks: 12
+                  bounce: false
+                  position:
+                    y: 2.2
+                  offset:
+                    random: false
+                """);
+
+        ConfigManager config = new ConfigManager(
+                yaml("animation:\n  preset: subtle"), presets);
+
+        AnimationSettings animation = config.animation();
+
+        // Keys the preset defines come from the preset.
+        assertEquals(12, animation.durationTicks());
+        assertFalse(animation.bounce());
+        assertEquals(2.2, animation.anchorHeight(), 1.0e-9);
+        assertFalse(animation.randomOffset());
+
+        // Keys the preset omits keep the built-in defaults.
+        AnimationSettings defaults = AnimationSettings.defaults();
+        assertEquals(defaults.verticalSpeed(), animation.verticalSpeed(), 1.0e-9);
+        assertEquals(defaults.rotationSpeed(), animation.rotationSpeed(), 1.0e-9);
+        assertEquals(defaults.followSmoothing(), animation.followSmoothing(), 1.0e-9);
+    }
+
+    @Test
+    void configKeysOverrideTheChosenPreset() {
+
+        FileConfiguration presets = yaml("""
+                subtle:
+                  duration-ticks: 12
+                  vertical-speed: 0.05
+                  position:
+                    y: 2.2
+                """);
+
+        ConfigManager config = new ConfigManager(yaml("""
+                animation:
+                  preset: subtle
+                  duration-ticks: 50
+                  position:
+                    x: 0.4
+                """), presets);
+
+        AnimationSettings animation = config.animation();
+
+        // The config section wins over the preset, key by key.
+        assertEquals(50, animation.durationTicks());
+        assertEquals(0.05, animation.verticalSpeed(), 1.0e-9);
+        assertEquals(2.2, animation.anchorHeight(), 1.0e-9);
+        assertEquals(0.4, animation.positionX(), 1.0e-9);
+        assertEquals(0.0, animation.positionZ(), 1.0e-9);
+    }
+
+    @Test
+    void unknownPresetFallsBackToBuiltInValues() {
+
+        FileConfiguration presets = yaml("""
+                subtle:
+                  duration-ticks: 12
+                """);
+
+        ConfigManager config = new ConfigManager(
+                yaml("animation:\n  preset: does-not-exist"), presets);
+
+        assertEquals(AnimationSettings.defaults(), config.animation());
+    }
+
+    @Test
+    void legacyFlatKeysStillOverrideThePreset() {
+
+        FileConfiguration presets = yaml("""
+                default:
+                  position:
+                    y: 1.8
+                  offset:
+                    random: true
+                    spread: 0.2
+                """);
+
+        ConfigManager config = new ConfigManager(yaml("""
+                animation:
+                  preset: default
+                  anchor-height: 2.4
+                  random-offset: false
+                  spawn-spread: 0.7
+                """), presets);
+
+        AnimationSettings animation = config.animation();
+
+        assertEquals(2.4, animation.anchorHeight(), 1.0e-9);
+        assertFalse(animation.randomOffset());
+        assertEquals(0.7, animation.spawnSpread(), 1.0e-9);
+    }
+
+    @Test
     void stylesAreResolvedPerTypeWithPerTypeDefaults() {
 
         ConfigManager config = new ConfigManager(yaml("""

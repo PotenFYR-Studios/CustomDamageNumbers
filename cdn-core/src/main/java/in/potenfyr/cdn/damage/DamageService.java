@@ -359,9 +359,9 @@ public final class DamageService {
 
         Location anchor = display.getAnchor();
 
-        double targetX = entity.getLocation().getX() + display.getSpawnOffsetX();
+        double targetX = entity.getLocation().getX() + animation.positionX() + display.getSpawnOffsetX();
         double targetY = entity.getLocation().getY() + animation.anchorHeight();
-        double targetZ = entity.getLocation().getZ() + display.getSpawnOffsetZ();
+        double targetZ = entity.getLocation().getZ() + animation.positionZ() + display.getSpawnOffsetZ();
 
         double smoothing = animation.followSmoothing();
 
@@ -699,7 +699,7 @@ public final class DamageService {
 
         Location base = victim.getLocation().clone();
 
-        return base.add(0.0, animation.anchorHeight(), 0.0);
+        return base.add(animation.positionX(), animation.anchorHeight(), animation.positionZ());
     }
 
     /** Killing blows flash briefly when {@code advanced.remove-on-death} is on. */

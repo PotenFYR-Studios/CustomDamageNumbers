@@ -64,56 +64,74 @@ general:
 #
 # The number is anchored above the damaged entity and follows it, so these
 # values describe the movement around that anchor.
+#
+# Ready-made animations live in presets.yml. `preset` picks one; every other
+# key in this section is an OPTIONAL override of that preset - comment the
+# line out to fall back to the preset's value.
+#
+# Upgrading from an older config with every key uncommented? The values below
+# then win over the preset, so comment out what you want the preset to
+# control.
 # ==========================================================
 
 animation:
 
+  # Which animation preset from presets.yml to use:
+  # default | subtle | explosive | orbit
+  preset: default
+
+  # ---- optional overrides of the chosen preset ----
+
   # Total lifetime of a number, in ticks (20 = 1 second).
-  duration-ticks: 30
+  #duration-ticks: 30
 
   # Ticks spent rising before the number starts to sink. The peak height is
   # vertical-speed * rise-ticks.
-  rise-ticks: 10
+  #rise-ticks: 10
 
   # Blocks per tick during the rise. 0.08 with rise-ticks 10 peaks at 0.8 blocks.
-  vertical-speed: 0.08
+  #vertical-speed: 0.08
 
   # Peak horizontal drift, in blocks.
-  horizontal-randomness: 0.20
+  #horizontal-randomness: 0.20
 
   # Scale the number over its lifetime.
-  scale-animation: true
-  start-scale: 1.3
-  end-scale: 0.8
+  #scale-animation: true
+  #start-scale: 1.3
+  #end-scale: 0.8
 
   # Fade the number out near the end of its life.
   # Requires a TextDisplay (1.20.2+); ignored by the legacy jar.
-  fade-out: true
+  #fade-out: true
 
   # Progress point (0-1) where fading starts.
-  fade-start: 0.6
+  #fade-start: 0.6
 
   # Layer a damped bounce on top of the rise.
-  bounce: true
-  bounce-strength: 0.35
+  #bounce: true
+  #bounce-strength: 0.35
 
   # Slowly orbit the anchor instead of drifting straight out.
-  rotation: false
-  rotation-speed: 0.10
-
-  # Give each number a small random spawn offset so stacked hits are readable.
-  random-offset: true
-  spawn-spread: 0.20
+  #rotation: false
+  #rotation-speed: 0.10
 
   # Keep the number attached to the damaged entity as it moves.
-  follow-entity: true
-
-  # How far above the entity's feet the number is anchored.
-  anchor-height: 1.8
+  #follow-entity: true
 
   # Anchor smoothing: 0 snaps to the entity each tick, higher values lag
   # behind for a softer follow.
-  follow-smoothing: 0.35
+  #follow-smoothing: 0.35
+
+  # Where the number sits, relative to the entity's feet.
+  #position:
+  #  x: 0.0
+  #  y: 1.8
+  #  z: 0.0
+
+  # Random spawn offset so stacked hits stay readable.
+  #offset:
+  #  random: true
+  #  spread: 0.20
 
 # ==========================================================
 # Hit merging

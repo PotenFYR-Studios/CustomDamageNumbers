@@ -61,7 +61,7 @@ class AnimationCurveTest {
                 false, 0.0,
                 false, 0.0,
                 false, 0.0,
-                1.8, true, 0.0,
+                1.8, 0.0, 0.0, true, 0.0,
                 1.5);
 
         double previous = -1.0;
@@ -80,11 +80,11 @@ class AnimationCurveTest {
 
         AnimationSettings slow = new AnimationSettings(
                 30, 10, 0.05, 0.2, true, 1.3, 0.8, false, 0.6,
-                false, 0.0, false, 0.0, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, false, 0.0, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         AnimationSettings fast = new AnimationSettings(
                 30, 10, 0.20, 0.2, true, 1.3, 0.8, false, 0.6,
-                false, 0.0, false, 0.0, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, false, 0.0, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         double slowPeak = AnimationCurve.frame(10, slow, 0).offsetY();
         double fastPeak = AnimationCurve.frame(10, fast, 0).offsetY();
@@ -118,7 +118,7 @@ class AnimationCurveTest {
 
         AnimationSettings settings = new AnimationSettings(
                 20, 8, 0.08, 0.2, false, 1.0, 1.0, false, 0.6,
-                false, 0.0, false, 0.0, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, false, 0.0, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         assertEquals(1.0f, AnimationCurve.frame(20, settings, 0).opacity(), 1.0e-6);
     }
@@ -138,7 +138,7 @@ class AnimationCurveTest {
 
         AnimationSettings settings = new AnimationSettings(
                 20, 8, 0.08, 0.2, false, 5.0, 0.1, false, 0.6,
-                false, 0.0, false, 0.0, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, false, 0.0, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         assertEquals(1.0f, AnimationCurve.frame(10, settings, 0).scale(), 1.0e-6);
     }
@@ -148,11 +148,11 @@ class AnimationCurveTest {
 
         AnimationSettings still = new AnimationSettings(
                 30, 10, 0.08, 0.4, false, 1.0, 1.0, false, 0.6,
-                false, 0.0, false, 0.2, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, false, 0.2, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         AnimationSettings spinning = new AnimationSettings(
                 30, 10, 0.08, 0.4, false, 1.0, 1.0, false, 0.6,
-                false, 0.0, true, 0.2, false, 0.0, 1.8, true, 0.0, 1.5);
+                false, 0.0, true, 0.2, false, 0.0, 1.8, 0.0, 0.0, true, 0.0, 1.5);
 
         AnimationFrame a = AnimationCurve.frame(4, still, 0);
         AnimationFrame b = AnimationCurve.frame(12, still, 0);
@@ -171,7 +171,7 @@ class AnimationCurveTest {
 
         AnimationSettings settings = new AnimationSettings(
                 1, 1, 0.08, 0.2, true, 1.3, 0.8, true, 0.6,
-                true, 0.5, true, 0.2, true, 0.2, 1.8, true, 0.5, 1.5);
+                true, 0.5, true, 0.2, true, 0.2, 1.8, 0.0, 0.0, true, 0.5, 1.5);
 
         AnimationFrame frame = AnimationCurve.frame(1, settings, 30);
 
@@ -207,7 +207,7 @@ class AnimationCurveTest {
 
         AnimationSettings settings = new AnimationSettings(
                 -5, 999, Double.NaN, -3.0, true, -1.0, 0.0, true, 2.0,
-                true, 99.0, false, 5.0, true, -2.0, 99.0, true, 4.0, 0.0);
+                true, 99.0, false, 5.0, true, -2.0, 99.0, 0.0, 0.0, true, 4.0, 0.0);
 
         assertTrue(settings.durationTicks() >= 1);
         assertTrue(settings.riseTicks() >= 1);
