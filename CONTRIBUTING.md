@@ -41,7 +41,7 @@ cdn-modern/        TextDisplay renderer (1.20.2 - 26.x)
 cdn-legacy/        armour stand renderer (1.17.x - 1.20.1)
 docker/e2e/        prepare.js, probe.js, run.sh - the end-to-end matrix
 docs/              documentation site (Vite + React), deployed to
-                   https://cdn.docs.potenfyr.in via GitHub Pages
+                   https:/docs.potenfyr.in/CustomDamageNumbers via GitHub Pages
 docs/superpowers/  specs and implementation plans for larger changes
 ```
 
@@ -49,7 +49,7 @@ docs/superpowers/  specs and implementation plans for larger changes
 
 1. Add the key to `cdn-core/src/main/resources/config.yml` with a comment explaining the effect and the units (ticks, blocks, milliseconds).
 2. Read it in `ConfigManager` and expose a typed accessor; do not read `config.getX` from feature code.
-3. Use it, add a unit test that proves the default and a changed value both behave, and document it in `docs/src/docs/content.ts`.
+3. Use it, add a unit test that proves the default and a changed value both behave, and document it in `docs/src/content.ts`.
 4. Confirm `/cdn reload` picks it up live: a config option that needs a restart is a bug.
 
 ## Adding a command
@@ -65,7 +65,7 @@ bun run dev      # vite dev server with HMR
 bun run build    # production build (static prerender of every route)
 ```
 
-Documentation content lives in `docs/src/docs/content.ts` as typed data, not JSX, so the prerenderer can enumerate the sections. New sections are picked up by the build and by the docs sidebar automatically.
+Documentation content lives in `docs/src/content.ts` as typed data, not JSX, so the prerenderer can enumerate the sections. New sections are picked up by the build and by the docs sidebar automatically.
 
 ## Commits and PRs
 
