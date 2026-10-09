@@ -4,7 +4,7 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:8b5cf6,50:ec4899,100:f97316&height=220&section=header&text=CustomDamageNumbers&fontSize=52&fontColor=ffffff&fontAlignY=34&desc=Packet-level%20floating%20damage%20numbers%20%C2%B7%201.17.x%20%E2%86%92%2026.x&descSize=18&descAlignY=55&animation=twinkling" width="100%" alt="CustomDamageNumbers banner"/>
 
 [![Release](https://img.shields.io/github/v/release/PotenFYR-Studios/CustomDamageNumbers?style=for-the-badge&logo=github&logoColor=white&labelColor=1c1e26&color=8b5cf6)](https://github.com/PotenFYR-Studios/CustomDamageNumbers/releases)
-[![Docs](https://img.shields.io/badge/https:/docs.potenfyr.in/CustomDamageNumbers-8b5cf6?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=1c1e26)](https:/docs.potenfyr.in/CustomDamageNumbers)
+[![Docs](https://img.shields.io/badge/https://docs.potenfyr.in/repo/customdamagenumbers?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=1c1e26)](https://docs.potenfyr.in/repo/customdamagenumbers)
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=1c1e26)](https://discord.com/invite/zUaN2FPBec)
 [![GitHub](https://img.shields.io/badge/GitHub-PotenFYR--Studios-181717?style=for-the-badge&logo=github&logoColor=white&labelColor=1c1e26)](https://github.com/PotenFYR-Studios/CustomDamageNumbers)
 [![View](https://komarev.com/ghpvc/?username=PotenFYR-Studios-CustomDamageNumbers&color=ec4899&style=for-the-badge&label=VIEW&labelColor=1c1e26)](https://github.com/PotenFYR-Studios/CustomDamageNumbers)
@@ -17,7 +17,7 @@
 
 **`CustomDamageNumbers`**: floating damage numbers drawn entirely with packets. Nothing is spawned into the world, the numbers follow the entity that took the hit, and every part of the animation is a value in `config.yml`.
 
-[Docs](https:/docs.potenfyr.in/CustomDamageNumbers) · [Examples](https:/docs.potenfyr.in/CustomDamageNumbers/examples) · [Releases](https://github.com/PotenFYR-Studios/CustomDamageNumbers/releases) · [Issues](https://github.com/PotenFYR-Studios/CustomDamageNumbers/issues)
+[Docs](https://docs.potenfyr.in/repo/customdamagenumbers) · [Examples](https://docs.potenfyr.in/repo/customdamagenumbers/examples) · [Releases](https://github.com/PotenFYR-Studios/CustomDamageNumbers/releases) · [Issues](https://github.com/PotenFYR-Studios/CustomDamageNumbers/issues)
 
 </div>
 
@@ -35,7 +35,7 @@ Every damage-indicator plugin eventually leaves something behind: an armour stan
 - **Players choose.** `/cdn toggle` switches numbers off for one player and persists across restarts; `/cdn style` picks a profile when their rank allows one.
 - **Two jars, one codebase.** A modern text-display renderer for 1.20.2 – 26.x and a legacy armour-stand renderer for 1.17.x – 1.20.1, behind a single `RenderBackend` interface. Compiled against the oldest supported API so a Paper-only class cannot leak in.
 
-> Full documentation lives at **[https:/docs.potenfyr.in/CustomDamageNumbers](https:/docs.potenfyr.in/CustomDamageNumbers)**: the [config reference](https:/docs.potenfyr.in/CustomDamageNumbers/docs#configuration), [examples](https:/docs.potenfyr.in/CustomDamageNumbers/examples) and [troubleshooting](https:/docs.potenfyr.in/CustomDamageNumbers/docs#troubleshooting). This README mirrors the same content.
+> Full documentation lives at **[https://docs.potenfyr.in/repo/customdamagenumbers](https://docs.potenfyr.in/repo/customdamagenumbers)**: the [config reference](https://docs.potenfyr.in/repo/customdamagenumbers/docs#configuration), [examples](https://docs.potenfyr.in/repo/customdamagenumbers/examples) and [troubleshooting](https://docs.potenfyr.in/repo/customdamagenumbers/docs#troubleshooting). This README mirrors the same content.
 
 ## 📦 Which jar do I install?
 
@@ -222,8 +222,8 @@ Found a vulnerability? Please report it privately: see [SECURITY.md](SECURITY.md
 
 ## 📚 Docs & links
 
-- [Documentation site](https:/docs.potenfyr.in/CustomDamageNumbers) (this repo's `docs/`, deployed via GitHub Pages)
-- [Config reference](https:/docs.potenfyr.in/CustomDamageNumbers/docs#configuration) · [Examples](https:/docs.potenfyr.in/CustomDamageNumbers/examples) · [Troubleshooting](https:/docs.potenfyr.in/CustomDamageNumbers/docs#troubleshooting)
+- [Documentation site](https://docs.potenfyr.in/repo/customdamagenumbers) (this repo's `docs/`, deployed via GitHub Pages)
+- [Config reference](https://docs.potenfyr.in/repo/customdamagenumbers/docs#configuration) · [Examples](https://docs.potenfyr.in/repo/customdamagenumbers/examples) · [Troubleshooting](https://docs.potenfyr.in/repo/customdamagenumbers/docs#troubleshooting)
 - [Releases](https://github.com/PotenFYR-Studios/CustomDamageNumbers/releases) · [Issues](https://github.com/PotenFYR-Studios/CustomDamageNumbers/issues)
 - [PotenFYR Studios](https://github.com/PotenFYR-Studios) | [Website](https://potenfyr.in) | [Discord](https://discord.com/invite/zUaN2FPBec)
 
